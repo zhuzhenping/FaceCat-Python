@@ -70,7 +70,6 @@ class FCPaint(object):
 		self.m_size = FCSize(0,0) #布局大小
 		self.m_isPath = FALSE #是否路径
 		self.m_views = [] #子视图
-		self.m_hRgn = None #裁剪对象
 		self.m_hWnd = None #句柄
 		self.m_memBM = None #绘图对象
 		self.m_innerHDC = None #内部HDC
@@ -208,9 +207,6 @@ class FCPaint(object):
 		win32gui.DrawText(self.m_innerHDC, text, len(text), pyRect, DT_NOPREFIX|DT_WORD_ELLIPSIS|0)
 	#结束绘图
 	def endPaint(self):
-		if(self.m_hRgn != None):
-			win32gui.DeleteObject(self.m_hRgn)
-			self.m_hRgn = None
 		if(self.m_clipRect != None):
 			win32gui.BitBlt(self.m_hdc, int(self.m_clipRect.left), int(self.m_clipRect.top), int(self.m_clipRect.right - self.m_clipRect.left), int(self.m_clipRect.bottom - self.m_clipRect.top), self.m_drawHDC, int(self.m_clipRect.left), int(self.m_clipRect.top), SRCCOPY)
 		else:
@@ -2647,6 +2643,29 @@ def getChartValue(chart, point):
 		return chart.m_indMin + (chart.m_indMax - chart.m_indMin) * rate
 	return 0
 
+#根据坐标获取K线层对应的值
+#chart:K线
+#point:坐标
+def getCandleDivValue(chart, point):
+	candleHeight = getCandleDivHeight(chart)
+	rate = (candleHeight - chart.m_candlePaddingBottom - point.y) / (candleHeight - chart.m_candlePaddingTop - chart.m_candlePaddingBottom)
+	cMin = chart.m_candleMin
+	cMax = chart.m_candleMax
+	if(chart.m_vScaleType != "standard"):
+		if (cMax > 0):
+			cMax = log10(cMax)
+		elif (cMax < 0):
+			cMax = -log10(abs(cMax))
+		if (cMin > 0):
+			cMin = log10(cMin)
+		elif (cMin < 0):
+			cMin = -log10(abs(cMin))
+	result = cMin + (cMax - cMin) * rate
+	if(chart.m_vScaleType != "standard"):
+		return pow(10, result)
+	else:
+		return result
+
 #清除缓存数据方法
 #chart:K线
 def clearDataArr(chart):
@@ -3728,473 +3747,489 @@ def getTRIXData(ticks, trixArr, matrixArr):
 
 #绘制画线工具
 #chart:K线
-#paint:绘图对象
+#pPaint:绘图对象
 #clipRect:裁剪区域
-def drawChartPlot(chart, paint, clipRect):
-	divHeight = getCandleDivHeight(chart)
-	for i in range(0,len(chart.m_plots)):
-		plot = chart.m_plots[i]
-		m_index1 = 0
-		m_index2 = 0
-		m_index3 = 0
-		mpx1 = 0
-		mpy1 = 0
-		mpx2 = 0
-		mpy2 = 0
-		mpx3 = 0
-		mpy3 = 0
-		if(plot.m_plotType == "LRLine" or plot.m_plotType == "LRChannel" or plot.m_plotType == "LRBand"):
-			listValue = []
-			m_index1 = getChartIndexByDate(chart, plot.m_key1)
-			m_index2 = getChartIndexByDate(chart, plot.m_key2)
-			minIndex = min(m_index1, m_index2)
-			maxIndex = max(m_index1, m_index2)
-			for j in range(minIndex,maxIndex + 1):
-				listValue.append(chart.m_data[j].m_close)
-			linearRegressionEquation(listValue)
-			plot.m_value1 = m_b_Chart
-			plot.m_value2 = m_k_Chart * (maxIndex - minIndex + 1) + m_b_Chart
-		elif(plot.m_plotType == "BoxLine" or plot.m_plotType == "TironeLevels" or plot.m_plotType == "QuadrantLines"):
-			getCandleRange(chart, plot)
-			nHigh = m_nHigh_Chart
-			nLow = m_nLow_Chart
-			m_index1 = getChartIndexByDate(chart, plot.m_key1)
-			m_index2 = getChartIndexByDate(chart, plot.m_key2)
-			plot.m_key1 = getChartDateByIndex(chart, min(m_index1, m_index2))
-			plot.m_key2 = getChartDateByIndex(chart, max(m_index1, m_index2))
-			plot.m_value1 = nHigh
-			plot.m_value2 = nLow
-		if(plot.m_key1 != None):
-			m_index1 = getChartIndexByDate(chart, plot.m_key1)
-			mpx1 = getChartX(chart, m_index1)
-			mpy1 = getChartY(chart, 0, plot.m_value1)
-			if (chart.m_sPlot == plot):
-				paint.fillEllipse(plot.m_pointColor, mpx1 - m_plotPointSize_Chart, mpy1 - m_plotPointSize_Chart, mpx1 + m_plotPointSize_Chart, mpy1 + m_plotPointSize_Chart)
-		if(plot.m_key2 != None):
-			m_index2 = getChartIndexByDate(chart, plot.m_key2)
-			mpx2 = getChartX(chart, m_index2)
-			mpy2 = getChartY(chart, 0, plot.m_value2)
-			if (chart.m_sPlot == plot):
-				paint.fillEllipse(plot.m_pointColor, mpx2 - m_plotPointSize_Chart, mpy2 - m_plotPointSize_Chart, mpx2 + m_plotPointSize_Chart, mpy2 + m_plotPointSize_Chart)
-		if(plot.m_key3 != None):
-			m_index3 = getChartIndexByDate(chart, plot.m_key3)
-			mpx3 = getChartX(chart, m_index3)
-			mpy3 = getChartY(chart, 0, plot.m_value3)
-			if (chart.m_sPlot == plot):
-				paint.fillEllipse(plot.m_pointColor, mpx3 - m_plotPointSize_Chart, mpy3 - m_plotPointSize_Chart, mpx3 + m_plotPointSize_Chart, mpy3 + m_plotPointSize_Chart)
-		if(plot.m_plotType == "Line"):
-			lineXY(mpx1, mpy1, mpx2, mpy2, 0, 0)
-			if(mpx2 == mpx1):
-				paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx1, 0, mpx1, divHeight)
-			else:
-				newX1 = chart.m_leftVScaleWidth
-				newY1 = newX1 * m_k_Chart + m_b_Chart
-				newX2 = chart.m_size.cx - chart.m_rightVScaleWidth
-				newY2 = newX2 * m_k_Chart + m_b_Chart
-				paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, newX1, newY1, newX2, newY2)
-		elif (plot.m_plotType == "ArrowSegment"):
-			ARROW_Size = 24
-			slopy = 0
-			cosy = 0
-			siny = 0
-			slopy = atan2(mpy1 - mpy2, mpx1 - mpx2)
-			cosy = cos(slopy)
-			siny = sin(slopy)
-			ptPoint = FCPoint()
-			ptPoint.x = mpx2
-			ptPoint.y = mpy2
-			pts = []
-			pts.append(FCPoint())
-			pts.append(FCPoint())
-			pts.append(FCPoint())
-			pts[0] = ptPoint
-			pts[1].x = ptPoint.x + (ARROW_Size * cosy - (ARROW_Size / 2.0 * siny) + 0.5)
-			pts[1].y = ptPoint.y + (ARROW_Size * siny + (ARROW_Size / 2.0 * cosy) + 0.5)
-			pts[2].x = ptPoint.x + (ARROW_Size * cosy + ARROW_Size / 2.0 * siny + 0.5)
-			pts[2].y = ptPoint.y - (ARROW_Size / 2.0 * cosy - ARROW_Size * siny + 0.5)
-			ARROW_Size = 20
-			ptPoint2 = FCPoint()
-			ptPoint2.x = mpx2
-			ptPoint2.y = mpy2
-			pts2 = []
-			pts2.append(FCPoint())
-			pts2.append(FCPoint())
-			pts2.append(FCPoint())
-			pts2[0] = ptPoint2
-			pts2[1].x = ptPoint2.x + (ARROW_Size * cosy - (ARROW_Size / 2.0 * siny) + 0.5)
-			pts2[1].y = ptPoint2.y + (ARROW_Size * siny + (ARROW_Size / 2.0 * cosy) + 0.5)
-			pts2[2].x = ptPoint2.x + (ARROW_Size * cosy + ARROW_Size / 2.0 * siny + 0.5)
-			pts2[2].y = ptPoint2.y - (ARROW_Size / 2.0 * cosy - ARROW_Size * siny + 0.5)
-			lineXY(pts2[1].x, pts2[1].y, pts2[2].x, pts2[2].y, 0, 0)
-			newX1 = 0
-			newY1 = 0
-			newX2 = 0
-			newY2 = 0
-
-			if (pts2[1].x > pts2[2].x):
-				newX1 = pts2[2].x + (pts2[1].x - pts2[2].x) / 3
-				newX2 = pts2[2].x + (pts2[1].x - pts2[2].x) * 2 / 3
-			else:
-				newX1 = pts2[1].x + (pts2[2].x - pts2[1].x) / 3
-				newX2 = pts2[1].x + (pts2[2].x - pts2[1].x) * 2 / 3
-			if (m_k_Chart == 0 and m_b_Chart == 0):
-				if (pts2[1].y > pts2[2].y):
-					newY1 = pts2[2].y + (pts2[1].y - pts2[2].y) / 3
-					newY2 = pts2[2].y + (pts2[1].y - pts2[2].y) * 2 / 3
+def drawChartPlot(chart, pPaint, clipRect):
+	if(len(chart.m_plots)):
+		paint = FCPaint()
+		paint.m_drawHDC = pPaint.m_innerHDC
+		paint.m_memBM = pPaint.m_innerBM
+		paint.m_scaleFactorX = pPaint.m_scaleFactorX
+		paint.m_scaleFactorY = pPaint.m_scaleFactorY
+		divHeight = getCandleDivHeight(chart)
+		cRect = FCRect(chart.m_leftVScaleWidth, 20, chart.m_size.cx, divHeight)
+		paint.beginClip(cRect)
+		for i in range(0,len(chart.m_plots)):
+			plot = chart.m_plots[i]
+			m_index1 = 0
+			m_index2 = 0
+			m_index3 = 0
+			mpx1 = 0
+			mpy1 = 0
+			mpx2 = 0
+			mpy2 = 0
+			mpx3 = 0
+			mpy3 = 0
+			if(plot.m_plotType == "LRLine" or plot.m_plotType == "LRChannel" or plot.m_plotType == "LRBand"):
+				listValue = []
+				m_index1 = getChartIndexByDate(chart, plot.m_key1)
+				m_index2 = getChartIndexByDate(chart, plot.m_key2)
+				minIndex = min(m_index1, m_index2)
+				maxIndex = max(m_index1, m_index2)
+				for j in range(minIndex,maxIndex + 1):
+					listValue.append(chart.m_data[j].m_close)
+				linearRegressionEquation(listValue)
+				plot.m_value1 = m_b_Chart
+				plot.m_value2 = m_k_Chart * (maxIndex - minIndex + 1) + m_b_Chart
+			elif(plot.m_plotType == "BoxLine" or plot.m_plotType == "TironeLevels" or plot.m_plotType == "QuadrantLines"):
+				getCandleRange(chart, plot)
+				nHigh = m_nHigh_Chart
+				nLow = m_nLow_Chart
+				m_index1 = getChartIndexByDate(chart, plot.m_key1)
+				m_index2 = getChartIndexByDate(chart, plot.m_key2)
+				plot.m_key1 = getChartDateByIndex(chart, min(m_index1, m_index2))
+				plot.m_key2 = getChartDateByIndex(chart, max(m_index1, m_index2))
+				plot.m_value1 = nHigh
+				plot.m_value2 = nLow
+			if(plot.m_key1 != None):
+				m_index1 = getChartIndexByDate(chart, plot.m_key1)
+				mpx1 = getChartX(chart, m_index1)
+				mpy1 = getChartY(chart, 0, plot.m_value1)
+				if (chart.m_sPlot == plot):
+					paint.fillEllipse(plot.m_pointColor, mpx1 - m_plotPointSize_Chart, mpy1 - m_plotPointSize_Chart, mpx1 + m_plotPointSize_Chart, mpy1 + m_plotPointSize_Chart)
+			if(plot.m_key2 != None):
+				m_index2 = getChartIndexByDate(chart, plot.m_key2)
+				mpx2 = getChartX(chart, m_index2)
+				mpy2 = getChartY(chart, 0, plot.m_value2)
+				if (chart.m_sPlot == plot):
+					paint.fillEllipse(plot.m_pointColor, mpx2 - m_plotPointSize_Chart, mpy2 - m_plotPointSize_Chart, mpx2 + m_plotPointSize_Chart, mpy2 + m_plotPointSize_Chart)
+			if(plot.m_key3 != None):
+				m_index3 = getChartIndexByDate(chart, plot.m_key3)
+				mpx3 = getChartX(chart, m_index3)
+				mpy3 = getChartY(chart, 0, plot.m_value3)
+				if (chart.m_sPlot == plot):
+					paint.fillEllipse(plot.m_pointColor, mpx3 - m_plotPointSize_Chart, mpy3 - m_plotPointSize_Chart, mpx3 + m_plotPointSize_Chart, mpy3 + m_plotPointSize_Chart)
+			if(plot.m_plotType == "Line"):
+				lineXY(mpx1, mpy1, mpx2, mpy2, 0, 0)
+				if(mpx2 == mpx1):
+					paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx1, 0, mpx1, divHeight)
 				else:
-					newY1 = pts2[1].y + (pts2[2].y - pts2[1].y) / 3
-					newY2 = pts2[1].y + (pts2[2].y - pts2[1].y) * 2 / 3
-			else:
-				newY1 = (m_k_Chart * newX1) + m_b_Chart
-				newY2 = (m_k_Chart * newX2) + m_b_Chart
-			pts2[1].x = newX1
-			pts2[1].y = newY1
-			pts2[2].x = newX2
-			pts2[2].y = newY2
-			drawPoints = []
-			drawPoints.append(FCPoint())
-			drawPoints.append(FCPoint())
-			drawPoints.append(FCPoint())
-			drawPoints.append(FCPoint())
-			drawPoints.append(FCPoint())
-			drawPoints.append(FCPoint())
-			drawPoints[0].x = ptPoint.x
-			drawPoints[0].y = ptPoint.y
-			drawPoints[1].x = pts[1].x
-			drawPoints[1].y = pts[1].y
-			if (mpy1 >= mpy2):
-				drawPoints[2].x = pts2[1].x
-				drawPoints[2].y = pts2[1].y
-			else:
-				drawPoints[2].x = pts2[2].x
-				drawPoints[2].y = pts2[2].y
-			drawPoints[3].x = mpx1
-			drawPoints[3].y = mpy1
-			if (mpy1 >= mpy2):
-				drawPoints[4].x = pts2[2].x
-				drawPoints[4].y = pts2[2].y
-			else:
-				drawPoints[4].x = pts2[1].x
-				drawPoints[4].y = pts2[1].y
-			drawPoints[5].x = pts[2].x
-			drawPoints[5].y = pts[2].y
+					newX1 = chart.m_leftVScaleWidth
+					newY1 = newX1 * m_k_Chart + m_b_Chart
+					newX2 = chart.m_size.cx - chart.m_rightVScaleWidth
+					newY2 = newX2 * m_k_Chart + m_b_Chart
+					paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, newX1, newY1, newX2, newY2)
+			elif (plot.m_plotType == "ArrowSegment"):
+				ARROW_Size = 24
+				slopy = 0
+				cosy = 0
+				siny = 0
+				slopy = atan2(mpy1 - mpy2, mpx1 - mpx2)
+				cosy = cos(slopy)
+				siny = sin(slopy)
+				ptPoint = FCPoint()
+				ptPoint.x = mpx2
+				ptPoint.y = mpy2
+				pts = []
+				pts.append(FCPoint())
+				pts.append(FCPoint())
+				pts.append(FCPoint())
+				pts[0] = ptPoint
+				pts[1].x = ptPoint.x + (ARROW_Size * cosy - (ARROW_Size / 2.0 * siny) + 0.5)
+				pts[1].y = ptPoint.y + (ARROW_Size * siny + (ARROW_Size / 2.0 * cosy) + 0.5)
+				pts[2].x = ptPoint.x + (ARROW_Size * cosy + ARROW_Size / 2.0 * siny + 0.5)
+				pts[2].y = ptPoint.y - (ARROW_Size / 2.0 * cosy - ARROW_Size * siny + 0.5)
+				ARROW_Size = 20
+				ptPoint2 = FCPoint()
+				ptPoint2.x = mpx2
+				ptPoint2.y = mpy2
+				pts2 = []
+				pts2.append(FCPoint())
+				pts2.append(FCPoint())
+				pts2.append(FCPoint())
+				pts2[0] = ptPoint2
+				pts2[1].x = ptPoint2.x + (ARROW_Size * cosy - (ARROW_Size / 2.0 * siny) + 0.5)
+				pts2[1].y = ptPoint2.y + (ARROW_Size * siny + (ARROW_Size / 2.0 * cosy) + 0.5)
+				pts2[2].x = ptPoint2.x + (ARROW_Size * cosy + ARROW_Size / 2.0 * siny + 0.5)
+				pts2[2].y = ptPoint2.y - (ARROW_Size / 2.0 * cosy - ARROW_Size * siny + 0.5)
+				lineXY(pts2[1].x, pts2[1].y, pts2[2].x, pts2[2].y, 0, 0)
+				newX1 = 0
+				newY1 = 0
+				newX2 = 0
+				newY2 = 0
 
-			paint.drawPolygon(plot.m_lineColor, 1, 0, drawPoints)
-		elif(plot.m_plotType == "AngleLine"):
-			lineXY(mpx1, mpy1, mpx2, mpy2, 0, 0)
-			if(mpx2 == mpx1):
-				paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx1, 0, mpx1, divHeight)
-			else:
-				newX1 = chart.m_leftVScaleWidth
-				newY1 = newX1 * m_k_Chart + m_b_Chart
-				newX2 = chart.m_size.cx - chart.m_rightVScaleWidth
-				newY2 = newX2 * m_k_Chart + m_b_Chart
-				paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, newX1, newY1, newX2, newY2)
-			lineXY(mpx1, mpy1, mpx3, mpy3, 0, 0)
-			if(mpx3 == mpx1):
-				paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx1, 0, mpx1, divHeight)
-			else:
-				newX1 = chart.m_leftVScaleWidth
-				newY1 = newX1 * m_k_Chart + m_b_Chart
-				newX2 = chart.m_size.cx - chart.m_rightVScaleWidth
-				newY2 = newX2 * m_k_Chart + m_b_Chart
-				paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, newX1, newY1, newX2, newY2)
-		elif(plot.m_plotType == "Parallel"):
-			lineXY(mpx1, mpy1, mpx2, mpy2, 0, 0)
-			if(mpx2 == mpx1):
-				paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx1, 0, mpx1, divHeight)
-			else:
-				newX1 = chart.m_leftVScaleWidth
-				newY1 = newX1 * m_k_Chart + m_b_Chart
-				newX2 = chart.m_size.cx - chart.m_rightVScaleWidth
-				newY2 = newX2 * m_k_Chart + m_b_Chart
-				paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, newX1, newY1, newX2, newY2)
-				newB = mpy3 - m_k_Chart * mpx3
-			if(mpx2 == mpx1):
-				paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx3, 0, mpx3, divHeight)
-			else:
-				newX1 = chart.m_leftVScaleWidth
-				newY1 = newX1 * m_k_Chart + newB
-				newX2 = chart.m_size.cx - chart.m_rightVScaleWidth
-				newY2 = newX2 * m_k_Chart + newB
-				paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, newX1, newY1, newX2, newY2)
-		elif(plot.m_plotType == "Percent"):
-			listValue = getPercentParams(mpy1, mpy2)
-			texts = []
-			texts.append("0%")
-			texts.append("25%")
-			texts.append("50%")
-			texts.append("75%")
-			texts.append("100%")
-			for j in range(0,len(listValue)):
-				paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, chart.m_leftVScaleWidth, listValue[j], chart.m_size.cx - chart.m_rightVScaleWidth, listValue[j])
-				tSize = paint.textSize(texts[j], chart.m_font)
-				paint.drawText(texts[j], chart.m_textColor, chart.m_font, chart.m_leftVScaleWidth + 5, listValue[j] - tSize.cy - 2)
-		elif(plot.m_plotType == "FiboTimezone"):
-			fValue = 1
-			aIndex = m_index1
-			pos = 1
-			paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx1, 0, mpx1, divHeight)
-			tSize = paint.textSize("1", chart.m_font)
-			paint.drawText("1", chart.m_textColor, chart.m_font, mpx1, divHeight - tSize.cy)
-			while (aIndex + fValue <= chart.m_lastVisibleIndex):
-				fValue = fibonacciValue(pos)
-				newIndex = aIndex + fValue
-				newX = getChartX(chart, newIndex)
-				paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, newX, 0, newX, divHeight)
-				tSize = paint.textSize(str(fValue), chart.m_font)
-				paint.drawText(str(fValue), chart.m_textColor, chart.m_font, newX, divHeight - tSize.cy)
-				pos = pos + 1
-		elif(plot.m_plotType == "SpeedResist"):
-			paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx1, mpy1, mpx2, mpy2)
-			if (mpx1 != mpx2 and mpy1 != mpy2):
-				firstP = FCPoint(mpx2, mpy2 - (mpy2 - mpy1) / 3)
-				secondP = FCPoint(mpx2, mpy2 - (mpy2 - mpy1) * 2 / 3)
-				startP = FCPoint(mpx1, mpy1)
-				fK = 0
-				fB = 0
-				sK = 0
-				sB = 0
-				lineXY(startP.x, startP.y, firstP.x, firstP.y, 0, 0)
-				fK = m_k_Chart
-				fb = m_b_Chart
-				lineXY(startP.x, startP.y, secondP.x, secondP.y, 0, 0)
-				sK = m_k_Chart
-				sB = m_b_Chart
-				newYF = 0
-				newYS = 0
-				newX = 0
-				if (mpx2 > mpx1):
-					newYF = fK * (chart.m_size.cx - chart.m_rightVScaleWidth) + fB
-					newYS = sK * (chart.m_size.cx - chart.m_rightVScaleWidth) + sB
-					newX = (chart.m_size.cx - chart.m_rightVScaleWidth)
+				if (pts2[1].x > pts2[2].x):
+					newX1 = pts2[2].x + (pts2[1].x - pts2[2].x) / 3
+					newX2 = pts2[2].x + (pts2[1].x - pts2[2].x) * 2 / 3
 				else:
-					newYF = fB
-					newYS = sB
-				newX = chart.m_leftVScaleWidth
-				paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, startP.x, startP.y, newX, newYF)
-				paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, startP.x, startP.y, newX, newYS)
-		elif(plot.m_plotType == "FiboFanline"):
-			paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx1, mpy1, mpx2, mpy2)
-			if (mpx1 != mpx2 and mpy1 != mpy2):
-				firstP = FCPoint(mpx2, mpy2 - (mpy2 - mpy1) * 0.382)
-				secondP = FCPoint(mpx2, mpy2 - (mpy2 - mpy1) * 0.5)
-				thirdP = FCPoint(mpx2, mpy2 - (mpy2 - mpy1) * 0.618)
-				startP = FCPoint(mpx1, mpy1)
-				listP = []
-				listP.append(firstP)
-				listP.append(secondP)
-				listP.append(thirdP);
-				listSize = len(listP)
-				for j in range(0,listSize):
-					lineXY(startP.x, startP.y, listP[j].x, listP[j].y, 0, 0)
-					newX = 0;
-					newY = 0
+					newX1 = pts2[1].x + (pts2[2].x - pts2[1].x) / 3
+					newX2 = pts2[1].x + (pts2[2].x - pts2[1].x) * 2 / 3
+				if (m_k_Chart == 0 and m_b_Chart == 0):
+					if (pts2[1].y > pts2[2].y):
+						newY1 = pts2[2].y + (pts2[1].y - pts2[2].y) / 3
+						newY2 = pts2[2].y + (pts2[1].y - pts2[2].y) * 2 / 3
+					else:
+						newY1 = pts2[1].y + (pts2[2].y - pts2[1].y) / 3
+						newY2 = pts2[1].y + (pts2[2].y - pts2[1].y) * 2 / 3
+				else:
+					newY1 = (m_k_Chart * newX1) + m_b_Chart
+					newY2 = (m_k_Chart * newX2) + m_b_Chart
+				pts2[1].x = newX1
+				pts2[1].y = newY1
+				pts2[2].x = newX2
+				pts2[2].y = newY2
+				drawPoints = []
+				drawPoints.append(FCPoint())
+				drawPoints.append(FCPoint())
+				drawPoints.append(FCPoint())
+				drawPoints.append(FCPoint())
+				drawPoints.append(FCPoint())
+				drawPoints.append(FCPoint())
+				drawPoints[0].x = ptPoint.x
+				drawPoints[0].y = ptPoint.y
+				drawPoints[1].x = pts[1].x
+				drawPoints[1].y = pts[1].y
+				if (mpy1 >= mpy2):
+					drawPoints[2].x = pts2[1].x
+					drawPoints[2].y = pts2[1].y
+				else:
+					drawPoints[2].x = pts2[2].x
+					drawPoints[2].y = pts2[2].y
+				drawPoints[3].x = mpx1
+				drawPoints[3].y = mpy1
+				if (mpy1 >= mpy2):
+					drawPoints[4].x = pts2[2].x
+					drawPoints[4].y = pts2[2].y
+				else:
+					drawPoints[4].x = pts2[1].x
+					drawPoints[4].y = pts2[1].y
+				drawPoints[5].x = pts[2].x
+				drawPoints[5].y = pts[2].y
+
+				paint.drawPolygon(plot.m_lineColor, 1, 0, drawPoints)
+			elif(plot.m_plotType == "AngleLine"):
+				lineXY(mpx1, mpy1, mpx2, mpy2, 0, 0)
+				if(mpx2 == mpx1):
+					paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx1, 0, mpx1, divHeight)
+				else:
+					newX1 = chart.m_leftVScaleWidth
+					newY1 = newX1 * m_k_Chart + m_b_Chart
+					newX2 = chart.m_size.cx - chart.m_rightVScaleWidth
+					newY2 = newX2 * m_k_Chart + m_b_Chart
+					paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, newX1, newY1, newX2, newY2)
+				lineXY(mpx1, mpy1, mpx3, mpy3, 0, 0)
+				if(mpx3 == mpx1):
+					paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx1, 0, mpx1, divHeight)
+				else:
+					newX1 = chart.m_leftVScaleWidth
+					newY1 = newX1 * m_k_Chart + m_b_Chart
+					newX2 = chart.m_size.cx - chart.m_rightVScaleWidth
+					newY2 = newX2 * m_k_Chart + m_b_Chart
+					paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, newX1, newY1, newX2, newY2)
+			elif(plot.m_plotType == "Parallel"):
+				lineXY(mpx1, mpy1, mpx2, mpy2, 0, 0)
+				if(mpx2 == mpx1):
+					paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx1, 0, mpx1, divHeight)
+				else:
+					newX1 = chart.m_leftVScaleWidth
+					newY1 = newX1 * m_k_Chart + m_b_Chart
+					newX2 = chart.m_size.cx - chart.m_rightVScaleWidth
+					newY2 = newX2 * m_k_Chart + m_b_Chart
+					paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, newX1, newY1, newX2, newY2)
+					newB = mpy3 - m_k_Chart * mpx3
+				if(mpx2 == mpx1):
+					paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx3, 0, mpx3, divHeight)
+				else:
+					newX1 = chart.m_leftVScaleWidth
+					newY1 = newX1 * m_k_Chart + newB
+					newX2 = chart.m_size.cx - chart.m_rightVScaleWidth
+					newY2 = newX2 * m_k_Chart + newB
+					paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, newX1, newY1, newX2, newY2)
+			elif(plot.m_plotType == "Percent"):
+				listValue = getPercentParams(mpy1, mpy2)
+				texts = []
+				texts.append("0%")
+				texts.append("25%")
+				texts.append("50%")
+				texts.append("75%")
+				texts.append("100%")
+				for j in range(0,len(listValue)):
+					paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, chart.m_leftVScaleWidth, listValue[j], chart.m_size.cx - chart.m_rightVScaleWidth, listValue[j])
+					tSize = paint.textSize(texts[j], chart.m_font)
+					paint.drawText(texts[j], chart.m_textColor, chart.m_font, chart.m_leftVScaleWidth + 5, listValue[j] - tSize.cy - 2)
+			elif(plot.m_plotType == "FiboTimezone"):
+				fValue = 1
+				aIndex = m_index1
+				pos = 1
+				paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx1, 0, mpx1, divHeight)
+				tSize = paint.textSize("1", chart.m_font)
+				paint.drawText("1", chart.m_textColor, chart.m_font, mpx1, divHeight - tSize.cy)
+				while (aIndex + fValue <= chart.m_lastVisibleIndex):
+					fValue = fibonacciValue(pos)
+					newIndex = aIndex + fValue
+					newX = getChartX(chart, newIndex)
+					paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, newX, 0, newX, divHeight)
+					tSize = paint.textSize(str(fValue), chart.m_font)
+					paint.drawText(str(fValue), chart.m_textColor, chart.m_font, newX, divHeight - tSize.cy)
+					pos = pos + 1
+			elif(plot.m_plotType == "SpeedResist"):
+				paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx1, mpy1, mpx2, mpy2)
+				if (mpx1 != mpx2 and mpy1 != mpy2):
+					firstP = FCPoint(mpx2, mpy2 - (mpy2 - mpy1) / 3)
+					secondP = FCPoint(mpx2, mpy2 - (mpy2 - mpy1) * 2 / 3)
+					startP = FCPoint(mpx1, mpy1)
+					fK = 0
+					fB = 0
+					sK = 0
+					sB = 0
+					lineXY(startP.x, startP.y, firstP.x, firstP.y, 0, 0)
+					fK = m_k_Chart
+					fb = m_b_Chart
+					lineXY(startP.x, startP.y, secondP.x, secondP.y, 0, 0)
+					sK = m_k_Chart
+					sB = m_b_Chart
+					newYF = 0
+					newYS = 0
+					newX = 0
 					if (mpx2 > mpx1):
-						newY = m_k_Chart * (chart.m_size.cx - chart.m_rightVScaleWidth) + m_b_Chart
+						newYF = fK * (chart.m_size.cx - chart.m_rightVScaleWidth) + fB
+						newYS = sK * (chart.m_size.cx - chart.m_rightVScaleWidth) + sB
 						newX = (chart.m_size.cx - chart.m_rightVScaleWidth)
 					else:
-						newY = m_b_Chart
-						newX = chart.m_leftVScaleWidth
-					paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, startP.x, startP.y, newX, newY)
-		elif(plot.m_plotType == "LRLine"):
-			paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx1, mpy1, mpx2, mpy2)
-		elif(plot.m_plotType == "LRBand"):
-			paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx1, mpy1, mpx2, mpy2)
-			getLRBandRange(chart, plot, m_k_Chart, m_b_Chart)
-			mpy1 = getChartY(chart, 0, plot.m_value1 + m_upSubValue)
-			mpy2 = getChartY(chart, 0, plot.m_value2 + m_upSubValue)
-			paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx1, mpy1, mpx2, mpy2)
-			mpy1 = getChartY(chart, 0, plot.m_value1 - m_downSubValue)
-			mpy2 = getChartY(chart, 0, plot.m_value2 - m_downSubValue)
-			paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx1, mpy1, mpx2, mpy2)
-		elif(plot.m_plotType == "LRChannel"):
-			getLRBandRange(chart, plot, m_k_Chart, m_b_Chart)
-			lineXY(mpx1, mpy1, mpx2, mpy2, 0, 0)
-			rightX = chart.m_size.cx - chart.m_rightVScaleWidth
-			rightY = rightX * m_k_Chart + m_b_Chart
-			paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx1, mpy1, rightX, rightY)
-			mpy1 = getChartY(chart, 0, plot.m_value1 + m_upSubValue)
-			mpy2 = getChartY(chart, 0, plot.m_value2 + m_upSubValue)
-			lineXY(mpx1, mpy1, mpx2, mpy2, 0, 0)
-			rightY = rightX * m_k_Chart + m_b_Chart
-			paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx1, mpy1, rightX, rightY)
-			mpy1 = getChartY(chart, 0, plot.m_value1 - m_downSubValue)
-			mpy2 = getChartY(chart, 0, plot.m_value2 - m_downSubValue)
-			lineXY(mpx1, mpy1, mpx2, mpy2, 0, 0)
-			rightY = rightX * m_k_Chart + m_b_Chart
-			paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx1, mpy1, rightX, rightY)
-		elif(plot.m_plotType == "Segment"):
-			paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx1, mpy1, mpx2, mpy2)
-		elif(plot.m_plotType == "Ray"):
-			lineXY(mpx1, mpy1, mpx2, mpy2, 0, 0)
-			if (m_k_Chart != 0 or m_b_Chart != 0):
-				leftX = chart.m_leftVScaleWidth
-				leftY = leftX * m_k_Chart + m_b_Chart
+						newYF = fB
+						newYS = sB
+					newX = chart.m_leftVScaleWidth
+					paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, startP.x, startP.y, newX, newYF)
+					paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, startP.x, startP.y, newX, newYS)
+			elif(plot.m_plotType == "FiboFanline"):
+				paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx1, mpy1, mpx2, mpy2)
+				if (mpx1 != mpx2 and mpy1 != mpy2):
+					firstP = FCPoint(mpx2, mpy2 - (mpy2 - mpy1) * 0.382)
+					secondP = FCPoint(mpx2, mpy2 - (mpy2 - mpy1) * 0.5)
+					thirdP = FCPoint(mpx2, mpy2 - (mpy2 - mpy1) * 0.618)
+					startP = FCPoint(mpx1, mpy1)
+					listP = []
+					listP.append(firstP)
+					listP.append(secondP)
+					listP.append(thirdP);
+					listSize = len(listP)
+					for j in range(0,listSize):
+						lineXY(startP.x, startP.y, listP[j].x, listP[j].y, 0, 0)
+						newX = 0;
+						newY = 0
+						if (mpx2 > mpx1):
+							newY = m_k_Chart * (chart.m_size.cx - chart.m_rightVScaleWidth) + m_b_Chart
+							newX = (chart.m_size.cx - chart.m_rightVScaleWidth)
+						else:
+							newY = m_b_Chart
+							newX = chart.m_leftVScaleWidth
+						paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, startP.x, startP.y, newX, newY)
+			elif(plot.m_plotType == "LRLine"):
+				paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx1, mpy1, mpx2, mpy2)
+			elif(plot.m_plotType == "LRBand"):
+				paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx1, mpy1, mpx2, mpy2)
+				getLRBandRange(chart, plot, m_k_Chart, m_b_Chart)
+				mpy1 = getChartY(chart, 0, plot.m_value1 + m_upSubValue)
+				mpy2 = getChartY(chart, 0, plot.m_value2 + m_upSubValue)
+				paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx1, mpy1, mpx2, mpy2)
+				mpy1 = getChartY(chart, 0, plot.m_value1 - m_downSubValue)
+				mpy2 = getChartY(chart, 0, plot.m_value2 - m_downSubValue)
+				paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx1, mpy1, mpx2, mpy2)
+			elif(plot.m_plotType == "LRChannel"):
+				getLRBandRange(chart, plot, m_k_Chart, m_b_Chart)
+				lineXY(mpx1, mpy1, mpx2, mpy2, 0, 0)
 				rightX = chart.m_size.cx - chart.m_rightVScaleWidth
 				rightY = rightX * m_k_Chart + m_b_Chart
-				if (mpx1 >= mpx2):
-					paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, leftX, leftY, mpx1, mpy1)
+				paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx1, mpy1, rightX, rightY)
+				mpy1 = getChartY(chart, 0, plot.m_value1 + m_upSubValue)
+				mpy2 = getChartY(chart, 0, plot.m_value2 + m_upSubValue)
+				lineXY(mpx1, mpy1, mpx2, mpy2, 0, 0)
+				rightY = rightX * m_k_Chart + m_b_Chart
+				paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx1, mpy1, rightX, rightY)
+				mpy1 = getChartY(chart, 0, plot.m_value1 - m_downSubValue)
+				mpy2 = getChartY(chart, 0, plot.m_value2 - m_downSubValue)
+				lineXY(mpx1, mpy1, mpx2, mpy2, 0, 0)
+				rightY = rightX * m_k_Chart + m_b_Chart
+				paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx1, mpy1, rightX, rightY)
+			elif(plot.m_plotType == "Segment"):
+				paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx1, mpy1, mpx2, mpy2)
+			elif(plot.m_plotType == "Ray"):
+				lineXY(mpx1, mpy1, mpx2, mpy2, 0, 0)
+				if (m_k_Chart != 0 or m_b_Chart != 0):
+					leftX = chart.m_leftVScaleWidth
+					leftY = leftX * m_k_Chart + m_b_Chart
+					rightX = chart.m_size.cx - chart.m_rightVScaleWidth
+					rightY = rightX * m_k_Chart + m_b_Chart
+					if (mpx1 >= mpx2):
+						paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, leftX, leftY, mpx1, mpy1)
+					else:
+						paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx1, mpy1, rightX, rightY)
 				else:
-					paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx1, mpy1, rightX, rightY)
-			else:
-				if (mpy1 >= mpy2):
-					paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx1, mpy1, mpx1, 0)
+					if (mpy1 >= mpy2):
+						paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx1, mpy1, mpx1, 0)
+					else:
+						paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx1, mpy1, mpx1, divHeight)
+			elif(plot.m_plotType == "Triangle"):
+				paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx1, mpy1, mpx2, mpy2)
+				paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx2, mpy2, mpx3, mpy3)
+				paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx1, mpy1, mpx3, mpy3)
+			elif(plot.m_plotType == "SymmetricTriangle"):
+				if (mpx2 != mpx1):
+					a = (mpy2 - mpy1) / (mpx2 - mpx1)
+					b = mpy1 - a * mpx1
+					c = -a
+					d = mpy3 - c * mpx3
+					leftX = chart.m_leftVScaleWidth
+					leftY = leftX * a + b
+					rightX = chart.m_size.cx - chart.m_rightVScaleWidth
+					rightY = rightX * a + b
+					paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, leftX, leftY, rightX, rightY)
+					leftY = leftX * c + d
+					rightY = rightX * c + d
+					paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, leftX, leftY, rightX, rightY)
 				else:
-					paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx1, mpy1, mpx1, divHeight)
-		elif(plot.m_plotType == "Triangle"):
-			paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx1, mpy1, mpx2, mpy2)
-			paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx2, mpy2, mpx3, mpy3)
-			paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx1, mpy1, mpx3, mpy3)
-		elif(plot.m_plotType == "SymmetricTriangle"):
-			if (mpx2 != mpx1):
-				a = (mpy2 - mpy1) / (mpx2 - mpx1)
-				b = mpy1 - a * mpx1
-				c = -a
-				d = mpy3 - c * mpx3
-				leftX = chart.m_leftVScaleWidth
-				leftY = leftX * a + b
-				rightX = chart.m_size.cx - chart.m_rightVScaleWidth
-				rightY = rightX * a + b
-				paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, leftX, leftY, rightX, rightY)
-				leftY = leftX * c + d
-				rightY = rightX * c + d
-				paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, leftX, leftY, rightX, rightY)
-			else:
-				paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx1, 0, mpx1, divHeight)
-				paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx3, 0, mpx3, divHeight)
-		elif (plot.m_plotType == "Rect"):
-			sX1 = min(mpx1, mpx2)
-			sY1 = min(mpy1, mpy2)
-			sX2 = max(mpx1, mpx2)
-			sY2 = max(mpy1, mpy2)
-			paint.drawRect(plot.m_lineColor, plot.m_lineWidth, 0, sX1, sY1, sX2, sY2)
-		elif(plot.m_plotType == "Cycle"):
-			r = math.sqrt(abs((mpx2 - mpx1) * (mpx2 - mpx1) + (mpy2 - mpy1) * (mpy2 - mpy1)))
-			paint.drawEllipse(plot.m_lineColor, plot.m_lineWidth, 0, mpx1 - r, mpy1 - r, mpx1 + r, mpy1 + r)
-		elif(plot.m_plotType == "CircumCycle"):
-			ellipseOR(mpx1, mpy1, mpx2, mpy2, mpx3, mpy3)
-			paint.drawEllipse(plot.m_lineColor, plot.m_lineWidth, 0, m_oX_Chart - m_r_Chart, m_oY_Chart - m_r_Chart, m_oX_Chart + m_r_Chart, m_oY_Chart + m_r_Chart)
-		elif(plot.m_plotType == "Ellipse"):
-			x1 = 0
-			y1 = 0
-			x2 = 0
-			y2 = 0
-			if(mpx1 <= mpx2):
-				x1 = mpx2
-				y1 = mpy2
-				x2 = mpx1
-				y2 = mpy1
-			else:
-				x1 = mpx1
-				y1 = mpy1
-				x2 = mpx2
-				y2 = mpy2	
-			x = x1 - (x1 - x2)
-			y = 0
-			width = (x1 - x2) * 2
-			height = 0
-			if (y1 >= y2):
-				height = (y1 - y2) * 2
-			else:
-				height = (y2 - y1) * 2
-			y = y2 - height / 2
-			paint.drawEllipse(plot.m_lineColor, plot.m_lineWidth, 0, x, y, x + width, y + height)
-		elif(plot.m_plotType == "ParalleGram"):
-			parallelogram(mpx1, mpy1, mpx2, mpy2, mpx3, mpy3)
-			paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx1, mpy1, mpx2, mpy2)
-			paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx2, mpy2, mpx3, mpy3)
-			paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx3, mpy3, m_x4_Chart, m_y4_Chart)
-			paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, m_x4_Chart, m_y4_Chart, mpx1, mpy1)
-		elif(plot.m_plotType == "BoxLine"):
-			sX1 = min(mpx1, mpx2)
-			sY1 = min(mpy1, mpy2)
-			sX2 = max(mpx1, mpx2)
-			sY2 = max(mpy1, mpy2)
-			paint.drawRect(plot.m_lineColor, plot.m_lineWidth, 0, sX1, sY1, sX2, sY2)
-			bSize = paint.textSize("COUNT:" + str(abs(m_index2 - m_index1) + 1), chart.m_font)
-			paint.drawText("COUNT:" + str(abs(m_index2 - m_index1) + 1), chart.m_textColor, chart.m_font, sX1 + 2, sY1 + 2)
-			closeList = []
-			for j in range(m_index1,m_index2 + 1):
-				closeList.append(chart.m_data[j].m_close)
-			avgClose = avgValue(closeList)
-			closeY = getChartY(chart, 0, avgClose)
-			paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 1, sX1, closeY, sX2, closeY)
-			drawAvg = "AVG:" + toFixed(avgClose, chart.m_candleDigit)
-			tSize = paint.textSize(drawAvg, chart.m_font)
-			paint.drawText(drawAvg, chart.m_textColor, chart.m_font, sX1 + 2, closeY - tSize.cy - 2)
-		elif(plot.m_plotType == "TironeLevels"):
-			sX1 = min(mpx1, mpx2)
-			sY1 = min(mpy1, mpy2)
-			sX2 = max(mpx1, mpx2)
-			sY2 = max(mpy1, mpy2)
-			paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, sX1, sY1, sX2, sY1)
-			paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, sX1, sY2, sX2, sY2)
-			paint.drawLine(plot.m_lineColor, plot.m_lineWidth, [5, 5], sX1 + (sX2 - sX1) / 2, sY1, sX1 + (sX2 - sX1) / 2, sY2)
-			t1 = m_nHigh_Chart
-			t2 = m_nHigh_Chart - (m_nHigh_Chart - m_nLow_Chart) / 3
-			t3 = m_nHigh_Chart - (m_nHigh_Chart - m_nLow_Chart) / 2
-			t4 = m_nHigh_Chart - 2 * (m_nHigh_Chart - m_nLow_Chart) / 3
-			t5 = m_nLow_Chart
-			tList = []
-			tList.append(t2)
-			tList.append(t3)
-			tList.append(t4)
-			for j in range(0,len(tList)):
-				y = getChartY(chart, 0, tList[j])
-				paint.drawLine(plot.m_lineColor, plot.m_lineWidth, [5,5], chart.m_leftVScaleWidth, y, chart.m_size.cx - chart.m_rightVScaleWidth, y)
-				strText = toFixed(tList[j], chart.m_candleDigit)
-				tSize = paint.textSize(strText, chart.m_font)
-				paint.drawText(strText, chart.m_textColor, chart.m_font, chart.m_leftVScaleWidth + 2, y - tSize.cy - 2)
-		elif(plot.m_plotType == "QuadrantLines"):
-			sX1 = min(mpx1, mpx2)
-			sY1 = min(mpy1, mpy2)
-			sX2 = max(mpx1, mpx2)
-			sY2 = max(mpy1, mpy2)
-			paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, sX1, sY1, sX2, sY1)
-			paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, sX1, sY2, sX2, sY2)
-			t1 = m_nHigh_Chart
-			t2 = m_nHigh_Chart - (m_nHigh_Chart - m_nLow_Chart) / 4
-			t3 = m_nHigh_Chart - (m_nHigh_Chart - m_nLow_Chart) / 2
-			t4 = m_nHigh_Chart - 3 * (m_nHigh_Chart - m_nLow_Chart) / 4
-			t5 = m_nLow_Chart
-			tList = []
-			tList.append(t2)
-			tList.append(t3)
-			tList.append(t4)
-			for j in range(0,len(tList)):
-				y = getChartY(chart, 0, tList[j])
-				paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, sX1, y, sX2, y)
-		elif(plot.m_plotType == "GoldenRatio"):
-			sX1 = min(mpx1, mpx2)
-			sY1 = min(mpy1, mpy2)
-			sX2 = max(mpx1, mpx2)
-			sY2 = max(mpy1, mpy2)
-			ranges = []
-			ranges.append(0);
-			ranges.append(0.236);
-			ranges.append(0.382);
-			ranges.append(0.5);
-			ranges.append(0.618);
-			ranges.append(0.809);
-			ranges.append(1);
-			ranges.append(1.382);
-			ranges.append(1.618);
-			ranges.append(2);
-			ranges.append(2.382);
-			ranges.append(2.618);
-			minValue = min(plot.m_value1, plot.m_value2)
-			maxValue = max(plot.m_value1, plot.m_value2)
-			for j in range(0,len(ranges)):
-				newY = sY2 + (sY1 - sY2) * (1 - ranges[j])
-				if(sY1 <= sY2):
-					newY = sY1 + (sY2 - sY1) * ranges[j]
-				paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, chart.m_leftVScaleWidth, newY, chart.m_size.cx - chart.m_rightVScaleWidth, newY)
-				newPoint = FCPoint(0, newY)
-				value = getChartValue(chart, newPoint)
-				strText = toFixed(value, chart.m_candleDigit)
-				tSize = paint.textSize(strText, chart.m_font)
-				paint.drawText(strText, chart.m_textColor, chart.m_font, chart.m_leftVScaleWidth + 2, newY - tSize.cy - 2)
+					paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx1, 0, mpx1, divHeight)
+					paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx3, 0, mpx3, divHeight)
+			elif (plot.m_plotType == "Rect"):
+				sX1 = min(mpx1, mpx2)
+				sY1 = min(mpy1, mpy2)
+				sX2 = max(mpx1, mpx2)
+				sY2 = max(mpy1, mpy2)
+				paint.drawRect(plot.m_lineColor, plot.m_lineWidth, 0, sX1, sY1, sX2, sY2)
+			elif(plot.m_plotType == "Cycle"):
+				r = math.sqrt(abs((mpx2 - mpx1) * (mpx2 - mpx1) + (mpy2 - mpy1) * (mpy2 - mpy1)))
+				paint.drawEllipse(plot.m_lineColor, plot.m_lineWidth, 0, mpx1 - r, mpy1 - r, mpx1 + r, mpy1 + r)
+			elif(plot.m_plotType == "CircumCycle"):
+				ellipseOR(mpx1, mpy1, mpx2, mpy2, mpx3, mpy3)
+				paint.drawEllipse(plot.m_lineColor, plot.m_lineWidth, 0, m_oX_Chart - m_r_Chart, m_oY_Chart - m_r_Chart, m_oX_Chart + m_r_Chart, m_oY_Chart + m_r_Chart)
+			elif(plot.m_plotType == "Ellipse"):
+				x1 = 0
+				y1 = 0
+				x2 = 0
+				y2 = 0
+				if(mpx1 <= mpx2):
+					x1 = mpx2
+					y1 = mpy2
+					x2 = mpx1
+					y2 = mpy1
+				else:
+					x1 = mpx1
+					y1 = mpy1
+					x2 = mpx2
+					y2 = mpy2	
+				x = x1 - (x1 - x2)
+				y = 0
+				width = (x1 - x2) * 2
+				height = 0
+				if (y1 >= y2):
+					height = (y1 - y2) * 2
+				else:
+					height = (y2 - y1) * 2
+				y = y2 - height / 2
+				paint.drawEllipse(plot.m_lineColor, plot.m_lineWidth, 0, x, y, x + width, y + height)
+			elif(plot.m_plotType == "ParalleGram"):
+				parallelogram(mpx1, mpy1, mpx2, mpy2, mpx3, mpy3)
+				paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx1, mpy1, mpx2, mpy2)
+				paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx2, mpy2, mpx3, mpy3)
+				paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, mpx3, mpy3, m_x4_Chart, m_y4_Chart)
+				paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, m_x4_Chart, m_y4_Chart, mpx1, mpy1)
+			elif(plot.m_plotType == "BoxLine"):
+				sX1 = min(mpx1, mpx2)
+				sY1 = min(mpy1, mpy2)
+				sX2 = max(mpx1, mpx2)
+				sY2 = max(mpy1, mpy2)
+				paint.drawRect(plot.m_lineColor, plot.m_lineWidth, 0, sX1, sY1, sX2, sY2)
+				bSize = paint.textSize("COUNT:" + str(abs(m_index2 - m_index1) + 1), chart.m_font)
+				paint.drawText("COUNT:" + str(abs(m_index2 - m_index1) + 1), chart.m_textColor, chart.m_font, sX1 + 2, sY1 + 2)
+				closeList = []
+				for j in range(m_index1,m_index2 + 1):
+					closeList.append(chart.m_data[j].m_close)
+				avgClose = avgValue(closeList)
+				closeY = getChartY(chart, 0, avgClose)
+				paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 1, sX1, closeY, sX2, closeY)
+				drawAvg = "AVG:" + toFixed(avgClose, chart.m_candleDigit)
+				tSize = paint.textSize(drawAvg, chart.m_font)
+				paint.drawText(drawAvg, chart.m_textColor, chart.m_font, sX1 + 2, closeY - tSize.cy - 2)
+			elif(plot.m_plotType == "TironeLevels"):
+				sX1 = min(mpx1, mpx2)
+				sY1 = min(mpy1, mpy2)
+				sX2 = max(mpx1, mpx2)
+				sY2 = max(mpy1, mpy2)
+				paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, sX1, sY1, sX2, sY1)
+				paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, sX1, sY2, sX2, sY2)
+				paint.drawLine(plot.m_lineColor, plot.m_lineWidth, [5, 5], sX1 + (sX2 - sX1) / 2, sY1, sX1 + (sX2 - sX1) / 2, sY2)
+				t1 = m_nHigh_Chart
+				t2 = m_nHigh_Chart - (m_nHigh_Chart - m_nLow_Chart) / 3
+				t3 = m_nHigh_Chart - (m_nHigh_Chart - m_nLow_Chart) / 2
+				t4 = m_nHigh_Chart - 2 * (m_nHigh_Chart - m_nLow_Chart) / 3
+				t5 = m_nLow_Chart
+				tList = []
+				tList.append(t2)
+				tList.append(t3)
+				tList.append(t4)
+				for j in range(0,len(tList)):
+					y = getChartY(chart, 0, tList[j])
+					paint.drawLine(plot.m_lineColor, plot.m_lineWidth, [5,5], chart.m_leftVScaleWidth, y, chart.m_size.cx - chart.m_rightVScaleWidth, y)
+					strText = toFixed(tList[j], chart.m_candleDigit)
+					tSize = paint.textSize(strText, chart.m_font)
+					paint.drawText(strText, chart.m_textColor, chart.m_font, chart.m_leftVScaleWidth + 2, y - tSize.cy - 2)
+			elif(plot.m_plotType == "QuadrantLines"):
+				sX1 = min(mpx1, mpx2)
+				sY1 = min(mpy1, mpy2)
+				sX2 = max(mpx1, mpx2)
+				sY2 = max(mpy1, mpy2)
+				paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, sX1, sY1, sX2, sY1)
+				paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, sX1, sY2, sX2, sY2)
+				t1 = m_nHigh_Chart
+				t2 = m_nHigh_Chart - (m_nHigh_Chart - m_nLow_Chart) / 4
+				t3 = m_nHigh_Chart - (m_nHigh_Chart - m_nLow_Chart) / 2
+				t4 = m_nHigh_Chart - 3 * (m_nHigh_Chart - m_nLow_Chart) / 4
+				t5 = m_nLow_Chart
+				tList = []
+				tList.append(t2)
+				tList.append(t3)
+				tList.append(t4)
+				for j in range(0,len(tList)):
+					y = getChartY(chart, 0, tList[j])
+					paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, sX1, y, sX2, y)
+			elif(plot.m_plotType == "GoldenRatio"):
+				sX1 = min(mpx1, mpx2)
+				sY1 = min(mpy1, mpy2)
+				sX2 = max(mpx1, mpx2)
+				sY2 = max(mpy1, mpy2)
+				ranges = []
+				ranges.append(0);
+				ranges.append(0.236);
+				ranges.append(0.382);
+				ranges.append(0.5);
+				ranges.append(0.618);
+				ranges.append(0.809);
+				ranges.append(1);
+				ranges.append(1.382);
+				ranges.append(1.618);
+				ranges.append(2);
+				ranges.append(2.382);
+				ranges.append(2.618);
+				minValue = min(plot.m_value1, plot.m_value2)
+				maxValue = max(plot.m_value1, plot.m_value2)
+				for j in range(0,len(ranges)):
+					newY = sY2 + (sY1 - sY2) * (1 - ranges[j])
+					if(sY1 <= sY2):
+						newY = sY1 + (sY2 - sY1) * ranges[j]
+					paint.drawLine(plot.m_lineColor, plot.m_lineWidth, 0, chart.m_leftVScaleWidth, newY, chart.m_size.cx - chart.m_rightVScaleWidth, newY)
+					newPoint = FCPoint(0, newY)
+					value = getCandleDivValue(chart, newPoint)
+					strText = toFixed(value, chart.m_candleDigit)
+					tSize = paint.textSize(strText, chart.m_font)
+					paint.drawText(strText, chart.m_textColor, chart.m_font, chart.m_leftVScaleWidth + 2, newY - tSize.cy - 2)
+		rect = FCRect(0, 0, cRect.right - cRect.left, cRect.bottom - cRect.top)
+		win32gui.StretchBlt(paint.m_drawHDC, int(cRect.left), int(cRect.top), int(cRect.right - cRect.left), int(cRect.bottom - cRect.top), paint.m_innerHDC, int(cRect.left - rect.left), int(cRect.top - rect.top), int(cRect.right - cRect.left), int(cRect.bottom - cRect.top), SRCPAINT)
+		if(paint.m_innerHDC != None):
+			win32gui.DeleteObject(paint.m_innerHDC)
+			paint.m_innerHDC = None
+		if(paint.m_innerBM != None):
+			win32gui.DeleteObject(paint.m_innerBM)
+			paint.m_innerBM = None
 
 #选中直线
 #chart: K线
@@ -4559,7 +4594,7 @@ def mouseMoveChart(chart, firstTouch, secondTouch, firstPoint, secondPoint):
 		newIndex = getChartIndex(chart, mp)
 		if(newIndex >= 0 and newIndex < len(chart.m_data)):
 			newDate = getChartDateByIndex(chart, newIndex)
-			newValue = getChartValue(chart, mp)
+			newValue = getCandleDivValue(chart, mp)
 			if (chart.m_selectPlotPoint == 0):
 				chart.m_sPlot.m_key1 = newDate
 				chart.m_sPlot.m_value1 = newValue
@@ -4570,7 +4605,7 @@ def mouseMoveChart(chart, firstTouch, secondTouch, firstPoint, secondPoint):
 				chart.m_sPlot.m_key3 = newDate
 				chart.m_sPlot.m_value3 = newValue
 			elif (chart.m_startMovePlot):
-				bValue = getChartValue(chart, m_mouseDownPoint_Chart)
+				bValue = getCandleDivValue(chart, m_mouseDownPoint_Chart)
 				bIndex = getChartIndex(chart, m_mouseDownPoint_Chart)
 				if (chart.m_sPlot.m_key1 != None):
 					chart.m_sPlot.m_value1 = chart.m_sPlot.m_startValue1 + (newValue - bValue)
@@ -5807,7 +5842,7 @@ def onViewMouseDown(view, mp, buttons, clicks, delta):
 					if(m_addingPlot_Chart == "FiboTimezone"):
 						fIndex = touchIndex
 						fDate = getChartDateByIndex(view, fIndex)
-						y = getChartValue(view, mp)
+						y = getCandleDivValue(view, mp)
 						newPlot = FCPlot()
 						if(view.m_paint.m_defaultUIStyle == "light"):
 							newPlot.m_lineColor = "rgb(0,0,0)"
@@ -5823,7 +5858,7 @@ def onViewMouseDown(view, mp, buttons, clicks, delta):
 						if (bIndex >= 0):
 							fDate = getChartDateByIndex(view, bIndex)
 							sDate = getChartDateByIndex(view, eIndex)
-							y = getChartValue(view, mp)
+							y = getCandleDivValue(view, mp)
 							newPlot = FCPlot()
 							if(view.m_paint.m_defaultUIStyle == "light"):
 								newPlot.m_lineColor = "rgb(0,0,0)"
@@ -5843,7 +5878,7 @@ def onViewMouseDown(view, mp, buttons, clicks, delta):
 						if (bIndex >= 0):
 							fDate = getChartDateByIndex(view, bIndex)
 							sDate = getChartDateByIndex(view, eIndex)
-							y = getChartValue(view, mp)
+							y = getCandleDivValue(view, mp)
 							newPlot = FCPlot()
 							if(view.m_paint.m_defaultUIStyle == "light"):
 								newPlot.m_lineColor = "rgb(0,0,0)"
@@ -6008,7 +6043,7 @@ wc.lpfnWndProc = WndProc
 reg = win32gui.RegisterClass(wc)
 hwnd = win32gui.CreateWindow(reg,'facecat-py',WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN,CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT,0,0,0,None)
 m_paint.m_hWnd = hwnd
-showChart = FALSE
+showChart = TRUE
 if(showChart):
 	m_split = FCSplitLayoutDiv()
 	m_split.m_dock = "fill"
