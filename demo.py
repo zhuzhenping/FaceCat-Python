@@ -340,7 +340,6 @@ def onViewMouseMove(view, mp, buttons, clicks, delta):
 #delta 滚轮值
 def onViewMouseDown(view, mp, buttons, clicks, delta):
 	global m_addingPlot_Chart
-	global m_mouseDownPoint_Chart
 	firstTouch = FALSE
 	secondTouch = FALSE
 	firstPoint = mp
@@ -356,7 +355,7 @@ def onViewMouseDown(view, mp, buttons, clicks, delta):
 	elif(view.m_type == "chart"):
 		view.m_selectShape = ""
 		view.m_selectShapeEx = ""
-		m_mouseDownPoint_Chart = mp;
+		facecat.m_mouseDownPoint_Chart = mp;
 		if(len(m_addingPlot_Chart) > 0):
 			if (mp.y < getCandleDivHeight(view)):
 				touchIndex = getChartIndex(view, mp)
@@ -445,10 +444,8 @@ def onViewMouseUp(view, mp, buttons, clicks, delta):
 		mouseUpDiv(view, firstTouch, secondTouch, firstPoint, secondPoint)
 		invalidateView(view, view.m_paint)
 	elif(view.m_type == "chart"):
-		global m_firstTouchIndexCache_Chart
-		global m_secondTouchIndexCache_Chart
-		m_firstTouchIndexCache_Chart = -1
-		m_secondTouchIndexCache_Chart = -1
+		facecat.m_firstTouchIndexCache_Chart = -1
+		facecat.m_secondTouchIndexCache_Chart = -1
 		invalidateView(view, view.m_paint)
 	elif(view.m_type == "button"):
 		invalidateView(view, view.m_paint)
@@ -577,7 +574,7 @@ wc.lpfnWndProc = WndProc
 reg = win32gui.RegisterClass(wc)
 hwnd = win32gui.CreateWindow(reg,'facecat-py',WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN,CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT,0,0,0,None)
 m_paint.m_hWnd = hwnd
-showChart = FALSE
+showChart = TRUE
 if(showChart):
 	m_split = FCSplitLayoutDiv()
 	m_split.m_dock = "fill"

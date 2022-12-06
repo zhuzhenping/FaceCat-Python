@@ -7,11 +7,8 @@
 import win32gui
 import win32api
 from win32con import *
-from xml.etree import ElementTree as ET
 import math
-import requests
 import time
-from requests.adapters import HTTPAdapter
 
 #坐标结构
 class FCPoint(object):
@@ -170,9 +167,9 @@ class FCPaint(object):
 		hPen = win32gui.CreatePen(PS_SOLID, int(wd), toColor(color)) 
 		hOldPen = win32gui.SelectObject(self.m_innerHDC, hPen)
 		win32gui.MoveToEx(self.m_innerHDC, int((left + self.m_offsetX) * self.m_scaleFactorX), int((top + self.m_offsetY) * self.m_scaleFactorY))
-		win32gui.LineTo(self.m_innerHDC, int((right + self.m_offsetX) * self.m_scaleFactorX) - 1, int((top + self.m_offsetY) * self.m_scaleFactorY))
-		win32gui.LineTo(self.m_innerHDC, int((right + self.m_offsetX) * self.m_scaleFactorX) - 1, int((bottom + self.m_offsetY) * self.m_scaleFactorY) - 1)
-		win32gui.LineTo(self.m_innerHDC, int((left + self.m_offsetX) * self.m_scaleFactorX), int((bottom + self.m_offsetY) * self.m_scaleFactorY) - 1)
+		win32gui.LineTo(self.m_innerHDC, int((right + self.m_offsetX) * self.m_scaleFactorX), int((top + self.m_offsetY) * self.m_scaleFactorY))
+		win32gui.LineTo(self.m_innerHDC, int((right + self.m_offsetX) * self.m_scaleFactorX), int((bottom + self.m_offsetY) * self.m_scaleFactorY))
+		win32gui.LineTo(self.m_innerHDC, int((left + self.m_offsetX) * self.m_scaleFactorX), int((bottom + self.m_offsetY) * self.m_scaleFactorY))
 		win32gui.LineTo(self.m_innerHDC, int((left + self.m_offsetX) * self.m_scaleFactorX), int((top + self.m_offsetY) * self.m_scaleFactorY))
 		#win32gui.Rect(self.m_drawHDC, int((left + self.m_offsetX) * self.m_scaleFactorX), int((top + self.m_offsetY) * self.m_scaleFactorY), int((right + self.m_offsetX) * self.m_scaleFactorX), int((bottom + self.m_offsetY) * self.m_scaleFactorY))
 		win32gui.SelectObject(self.m_innerHDC, hOldPen)
@@ -191,7 +188,19 @@ class FCPaint(object):
 			wd = 1
 		hPen = win32gui.CreatePen(PS_SOLID, int(wd), toColor(color)) 
 		hOldPen = win32gui.SelectObject(self.m_innerHDC, hPen)
-		win32gui.Ellipse(self.m_innerHDC, int((left + self.m_offsetX) * self.m_scaleFactorX), int((top + self.m_offsetY) * self.m_scaleFactorY), int((right + self.m_offsetX) * self.m_scaleFactorX), int((bottom + self.m_offsetY) * self.m_scaleFactorY))
+		xLeft = int((left + self.m_offsetX) * self.m_scaleFactorX)
+		yTop = int((top + self.m_offsetY) * self.m_scaleFactorY)
+		xRight = int((right + self.m_offsetX) * self.m_scaleFactorX)
+		yBottom = int((bottom + self.m_offsetY) * self.m_scaleFactorY)
+		xStart = xLeft
+		yStart = int(yTop + (yBottom - yTop) / 2)
+		xEnd = xLeft
+		yEnd = yStart
+		if(xLeft == xRight or yTop == yBottom):
+			win32gui.MoveToEx(self.m_innerHDC, int((xLeft + self.m_offsetX) * self.m_scaleFactorX), int((yTop + self.m_offsetY) * self.m_scaleFactorY))
+			win32gui.LineTo(self.m_innerHDC, int((xRight + self.m_offsetX) * self.m_scaleFactorX), int((yBottom + self.m_offsetY) * self.m_scaleFactorY))
+		else:
+			win32gui.Arc(self.m_innerHDC, xLeft, yTop, xRight, yBottom, xStart, yStart, xEnd, yEnd)
 		win32gui.SelectObject(self.m_innerHDC, hOldPen)
 		win32gui.DeleteObject(hPen)
 	#绘制文字大小 
@@ -226,7 +235,7 @@ class FCPaint(object):
 	def fillRect(self, color, left, top, right, bottom):
 		brush = win32gui.CreateSolidBrush(toColor(color))
 		win32gui.SelectObject(self.m_innerHDC, brush)
-		pyRect = (int((left + self.m_offsetX) * self.m_scaleFactorX), int((top + self.m_offsetY) * self.m_scaleFactorY), int((right + self.m_offsetX) * self.m_scaleFactorX), int((bottom + self.m_offsetY) * self.m_scaleFactorY))
+		pyRect = (int((left + self.m_offsetX) * self.m_scaleFactorX), int((top + self.m_offsetY) * self.m_scaleFactorY), int((right + self.m_offsetX + 1) * self.m_scaleFactorX), int((bottom + self.m_offsetY + 1) * self.m_scaleFactorY))
 		win32gui.FillRect(self.m_innerHDC, pyRect, brush)
 		win32gui.DeleteObject(brush)
 	#填充椭圆 
@@ -873,7 +882,7 @@ def drawButton(button, paint, clipRect):
 		tSize = paint.textSize(button.m_text, button.m_font)
 		paint.drawText(button.m_text, button.m_textColor, button.m_font, (button.m_size.cx - tSize.cx) / 2, (button.m_size.cy  - tSize.cy) / 2)
 	if(button.m_borderColor != "none"):
-		paint.drawRect(button.m_borderColor, 1, 0, 0, 0, button.m_size.cx, button.m_size.cy)
+		paint.drawRect(button.m_borderColor, 1, 0, 1, 1, button.m_size.cx - 1, button.m_size.cy - 1)
 
 #获取内容的宽度 
 #div:图层
@@ -926,7 +935,7 @@ def drawDivScrollBar(div, paint, clipRect):
 #clipRect:裁剪区域
 def drawDivBorder(div, paint, clipRect):
 	if(div.m_borderColor != "none"):
-		paint.drawRect(div.m_borderColor, 1, 0, 0, 0, div.m_size.cx, div.m_size.cy)
+		paint.drawRect(div.m_borderColor, 1, 0, 1, 1, div.m_size.cx - 1, div.m_size.cy - 1)
 
 #重绘图形 
 #div:视图 
@@ -2241,19 +2250,20 @@ def ellipseOR(x1, y1, x2, y2, x3, y3):
 #a:椭圆参数a 
 #b:椭圆参数b
 def ellipseHasPoint(x, y, oX, oY, a, b):
-    x -= oX
-    y -= oY
-    if (a == 0 and b == 0 and x == 0 and y == 0):
-        return TRUE
-    if (a == 0):
-        if (x == 0 and y >= -b and y <= b):
-            return FALSE
-    if (b == 0):
-        if (y == 0 and x >= -a and x <= a):
-            return TRUE
-    if ((x * x) / (a * a) + (y * y) / (b * b) >= 0.8 and (x * x) / (a * a) + (y * y) / (b * b) <= 1.2):
-        return TRUE
-    return FALSE
+	x -= oX
+	y -= oY
+	if (a == 0 and b == 0 and x == 0 and y == 0):
+		return TRUE
+	if (a == 0):
+		if (x == 0 and y >= -b and y <= b):
+			return FALSE
+	if (b == 0):
+		if (y == 0 and x >= -a and x <= a):
+			return TRUE
+	if a != 0 and b != 0:
+		if ((x * x) / (a * a) + (y * y) / (b * b) >= 0.8 and (x * x) / (a * a) + (y * y) / (b * b) <= 1.2):
+			return TRUE
+	return FALSE
 
 #计算线性回归 
 #list:集合
@@ -3757,7 +3767,7 @@ def drawChartPlot(chart, pPaint, clipRect):
 		paint.m_scaleFactorX = pPaint.m_scaleFactorX
 		paint.m_scaleFactorY = pPaint.m_scaleFactorY
 		divHeight = getCandleDivHeight(chart)
-		cRect = FCRect(chart.m_leftVScaleWidth, 20, chart.m_size.cx, divHeight)
+		cRect = FCRect(chart.m_leftVScaleWidth, 0, chart.m_size.cx, divHeight)
 		paint.beginClip(cRect)
 		for i in range(0,len(chart.m_plots)):
 			plot = chart.m_plots[i]
@@ -5257,7 +5267,7 @@ def drawChart(chart, paint, clipRect):
 	drawChartPlot(chart, paint, clipRect)
 	drawChartCrossLine(chart, paint, clipRect);
 	if (chart.m_borderColor != "none"):
-		paint.drawRect(chart.m_borderColor, m_lineWidth_Chart, 0, 0, 0, chart.m_size.cx, chart.m_size.cy)
+		paint.drawRect(chart.m_borderColor, m_lineWidth_Chart, 0, 1, 1, chart.m_size.cx - 1, chart.m_size.cy - 1)
 
 #重绘视图 
 #views:视图集合 
