@@ -882,7 +882,7 @@ def drawButton(button, paint, clipRect):
 		tSize = paint.textSize(button.m_text, button.m_font)
 		paint.drawText(button.m_text, button.m_textColor, button.m_font, (button.m_size.cx - tSize.cx) / 2, (button.m_size.cy  - tSize.cy) / 2)
 	if(button.m_borderColor != "none"):
-		paint.drawRect(button.m_borderColor, 1, 0, 1, 1, button.m_size.cx - 1, button.m_size.cy - 1)
+		paint.drawRect(button.m_borderColor, 1, 0, 0, 0, button.m_size.cx - 1, button.m_size.cy - 1)
 
 #获取内容的宽度 
 #div:图层
@@ -935,7 +935,7 @@ def drawDivScrollBar(div, paint, clipRect):
 #clipRect:裁剪区域
 def drawDivBorder(div, paint, clipRect):
 	if(div.m_borderColor != "none"):
-		paint.drawRect(div.m_borderColor, 1, 0, 1, 1, div.m_size.cx - 1, div.m_size.cy - 1)
+		paint.drawRect(div.m_borderColor, 1, 0, 0, 0, div.m_size.cx - 1, div.m_size.cy - 1)
 
 #重绘图形 
 #div:视图 
@@ -5267,7 +5267,7 @@ def drawChart(chart, paint, clipRect):
 	drawChartPlot(chart, paint, clipRect)
 	drawChartCrossLine(chart, paint, clipRect);
 	if (chart.m_borderColor != "none"):
-		paint.drawRect(chart.m_borderColor, m_lineWidth_Chart, 0, 1, 1, chart.m_size.cx - 1, chart.m_size.cy - 1)
+		paint.drawRect(chart.m_borderColor, m_lineWidth_Chart, 0, 0, 0, chart.m_size.cx - 1, chart.m_size.cy - 1)
 
 #重绘视图 
 #views:视图集合 

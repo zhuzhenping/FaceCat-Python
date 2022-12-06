@@ -574,7 +574,7 @@ wc.lpfnWndProc = WndProc
 reg = win32gui.RegisterClass(wc)
 hwnd = win32gui.CreateWindow(reg,'facecat-py',WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN,CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT,0,0,0,None)
 m_paint.m_hWnd = hwnd
-showChart = TRUE
+showChart = FALSE
 if(showChart):
 	m_split = FCSplitLayoutDiv()
 	m_split.m_dock = "fill"
