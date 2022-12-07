@@ -278,59 +278,40 @@ reg = win32gui.RegisterClass(wc)
 hwnd = win32gui.CreateWindow(reg,'facecat-py',WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN,CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT,0,0,0,None)
 m_paint.m_hWnd = hwnd
 
-m_div = FCView()
-m_div.m_paint = m_paint
-if (m_div.m_paint.m_defaultUIStyle == "dark"):
-    m_div.m_backColor = "rgb(0,0,0)"
-    m_div.m_borderColor = "rgb(100,100,100)"
-    m_div.m_textColor = "rgb(255,255,255)"
-elif(m_div.m_paint.m_defaultUIStyle == "light"):
-    m_div.m_backColor = "rgb(255,255,255)"
-    m_div.m_borderColor = "rgb(150,150,150)"
-    m_div.m_textColor = "rgb(0,0,0)"
-
-m_div.m_type = "div"
-m_div.m_showHScrollBar = TRUE
-m_div.m_showVScrollBar = TRUE
-m_div.m_dock = "fill"
-m_paint.m_views.append(m_div)
-for i in range(0,10):
-	subDiv = FCView()
-	subDiv.m_type = "div"
-	subDiv.m_location = FCPoint(i * 200, i * 200)
-	subDiv.m_size = FCSize(200, 200)
-	subDiv.m_text = "按钮" + str(i)
-	subDiv.m_showHScrollBar = TRUE
-	subDiv.m_showVScrollBar = TRUE
-	subDiv.m_parent = m_div;
-	subDiv.m_paint = m_paint;
-	if (m_div.m_paint.m_defaultUIStyle == "dark"):
-		subDiv.m_backColor = "rgb(0,0,0)"
-		subDiv.m_borderColor = "rgb(100,100,100)"
-		subDiv.m_textColor = "rgb(255,255,255)"
-	elif(m_div.m_paint.m_defaultUIStyle == "light"):
-		subDiv.m_backColor = "rgb(255,255,255)"
-		subDiv.m_borderColor = "rgb(150,150,150)"
-		subDiv.m_textColor = "rgb(0,0,0)"
-	m_div.m_views.append(subDiv)
-	for j in range(0,10):
-		sunDiv = FCView()
-		sunDiv.m_location = FCPoint(j * 20, j * 40)
-		sunDiv.m_size = FCSize(100, 20)
-		sunDiv.m_text = "按钮" + str(i) + "," + str(j)
-		sunDiv.m_visible = TRUE;
-		sunDiv.m_parent = subDiv;
-		sunDiv.m_paint = m_paint;
-		sunDiv.m_allowDrag = TRUE;
-		if (m_div.m_paint.m_defaultUIStyle == "dark"):
-			sunDiv.m_backColor = "rgb(0,0,0)"
-			sunDiv.m_borderColor = "rgb(100,100,100)"
-			sunDiv.m_textColor = "rgb(255,255,255)"
-		elif (m_div.m_paint.m_defaultUIStyle == "light"):
-			sunDiv.m_backColor = "rgb(255,255,255)"
-			sunDiv.m_borderColor = "rgb(150,150,150)"
-			sunDiv.m_textColor = "rgb(0,0,0)"
-		subDiv.m_views.append(sunDiv)
+m_layout = FCLayoutDiv()
+m_layout.m_paint = m_paint
+m_layout.m_showHScrollBar = TRUE
+m_layout.m_showVScrollBar = TRUE
+if (m_layout.m_paint.m_defaultUIStyle == "dark"):
+	m_layout.m_backColor = "rgb(0,0,0)"
+	m_layout.m_borderColor = "rgb(100,100,100)"
+	m_layout.m_textColor = "rgb(255,255,255)"
+elif (m_layout.m_paint.m_defaultUIStyle == "light"):
+	m_layout.m_backColor = "rgb(255,255,255)"
+	m_layout.m_borderColor = "rgb(150,150,150)"
+	m_layout.m_textColor = "rgb(0,0,0)"
+m_layout.m_dock = "fill"       
+m_layout.m_padding = FCPadding(10, 10, 10, 10)
+m_layout.m_autoWrap = TRUE;
+m_paint.m_views.append(m_layout)
+for i in range(0,100):
+	button = FCView()
+	button.m_paint = m_paint
+	button.m_text = str(i + 1)
+	if (m_layout.m_paint.m_defaultUIStyle == "dark"):
+		button.m_backColor = "rgb(0,0,0)"
+		button.m_borderColor = "rgb(100,100,100)"
+		button.m_textColor = "rgb(255,255,255)"
+	elif(m_layout.m_paint.m_defaultUIStyle == "light"):
+		button.m_backColor = "rgb(255,255,255)"
+		button.m_borderColor = "rgb(150,150,150)"
+		button.m_textColor = "rgb(0,0,0)"
+	button.m_size = FCSize(100, 100)
+	button.m_location = FCPoint(0, 0)
+	button.m_margin = FCPadding(10, 10, 10, 10)
+	button.m_parent = m_layout
+	m_layout.m_views.append(button)
+resetLayoutDiv(m_layout);
 
 rect = win32gui.GetClientRect(hwnd)
 m_paint.m_size = FCSize(rect[2] - rect[0], rect[3] - rect[1])

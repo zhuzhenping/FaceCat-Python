@@ -58,7 +58,7 @@ def onViewPaint(view, paint, drawRect):
 		if(view.m_textColor != "none"):
 			tSize = paint.textSize(view.m_text, view.m_font)
 			paint.drawText(view.m_text, view.m_textColor, view.m_font, 0, (view.m_size.cy - tSize.cy) / 2)
-	elif(view.m_type == "div" or view.m_type =="tabpage" or view.m_type =="tabview"):
+	elif(view.m_type == "div" or view.m_type =="tabpage" or view.m_type =="tabview" or view.m_type =="layout"):
 		drawDiv(view, paint, drawRect)
 	else:
 		drawButton(view, paint, drawRect)
@@ -72,7 +72,7 @@ def onViewPaintBorder(view, paint, drawRect):
 		drawGridScrollBar(view, paint, drawRect)
 	elif(view.m_type == "tree"):
 		drawTreeScrollBar(view, paint, drawRect)
-	elif(view.m_type == "div" or view.m_type =="tabpage" or view.m_type =="tabview"):
+	elif(view.m_type == "div" or view.m_type =="tabpage" or view.m_type =="tabview" or view.m_type =="layout"):
 		drawDivScrollBar(view, paint, drawRect)
 		drawDivBorder(view, paint, drawRect)
 
@@ -97,7 +97,7 @@ def onViewMouseMove(view, mp, buttons, clicks, delta):
 	elif(view.m_type == "chart"):
 		mouseMoveChart(view, firstTouch, secondTouch, firstPoint, secondPoint)
 		invalidateView(view, view.m_paint)
-	elif(view.m_type == "div"):
+	elif(view.m_type == "div" or view.m_type =="layout"):
 		mouseMoveDiv(view, firstTouch, secondTouch, firstPoint, secondPoint)
 		invalidateView(view, view.m_paint)
 	elif(view.m_type == "button"):
@@ -129,7 +129,7 @@ def onViewMouseDown(view, mp, buttons, clicks, delta):
 		facecat.m_mouseDownPoint_Chart = mp;
 		if (view.m_sPlot == None):
 			selectShape(view, mp)
-	elif(view.m_type == "div"):
+	elif(view.m_type == "div" or view.m_type =="layout"):
 		mouseDownDiv(view, firstTouch, secondTouch, firstPoint, secondPoint)
 		invalidateView(view, view.m_paint)
 	elif(view.m_type == "button"):
@@ -154,7 +154,7 @@ def onViewMouseUp(view, mp, buttons, clicks, delta):
 	elif (view.m_type == "tree"):
 		mouseUpTree(view, firstTouch, secondTouch, firstPoint, secondPoint)
 		invalidateView(view, view.m_paint)
-	elif (view.m_type == "div"):
+	elif (view.m_type == "div" or view.m_type =="layout"):
 		mouseUpDiv(view, firstTouch, secondTouch, firstPoint, secondPoint)
 		invalidateView(view, view.m_paint)
 	elif(view.m_type == "chart"):
@@ -198,7 +198,7 @@ def onViewMouseWheel(view, mp, buttons, clicks, delta):
 	elif (view.m_type == "tree"):
 		mouseWheelTree(view, delta)
 		invalidateView(view, view.m_paint)
-	elif (view.m_type == "div"):
+	elif (view.m_type == "div" or view.m_type =="layout"):
 		mouseWheelDiv(view, delta)
 		invalidateView(view, view.m_paint)
 	elif(view.m_type == "chart"):

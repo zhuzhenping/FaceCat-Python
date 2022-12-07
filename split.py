@@ -278,59 +278,50 @@ reg = win32gui.RegisterClass(wc)
 hwnd = win32gui.CreateWindow(reg,'facecat-py',WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN,CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT,0,0,0,None)
 m_paint.m_hWnd = hwnd
 
-m_div = FCView()
-m_div.m_paint = m_paint
-if (m_div.m_paint.m_defaultUIStyle == "dark"):
-    m_div.m_backColor = "rgb(0,0,0)"
-    m_div.m_borderColor = "rgb(100,100,100)"
-    m_div.m_textColor = "rgb(255,255,255)"
-elif(m_div.m_paint.m_defaultUIStyle == "light"):
-    m_div.m_backColor = "rgb(255,255,255)"
-    m_div.m_borderColor = "rgb(150,150,150)"
-    m_div.m_textColor = "rgb(0,0,0)"
+m_split = FCSplitLayoutDiv()
+m_split.m_size = FCSize(400, 400)
 
-m_div.m_type = "div"
-m_div.m_showHScrollBar = TRUE
-m_div.m_showVScrollBar = TRUE
-m_div.m_dock = "fill"
-m_paint.m_views.append(m_div)
-for i in range(0,10):
-	subDiv = FCView()
-	subDiv.m_type = "div"
-	subDiv.m_location = FCPoint(i * 200, i * 200)
-	subDiv.m_size = FCSize(200, 200)
-	subDiv.m_text = "按钮" + str(i)
-	subDiv.m_showHScrollBar = TRUE
-	subDiv.m_showVScrollBar = TRUE
-	subDiv.m_parent = m_div;
-	subDiv.m_paint = m_paint;
-	if (m_div.m_paint.m_defaultUIStyle == "dark"):
-		subDiv.m_backColor = "rgb(0,0,0)"
-		subDiv.m_borderColor = "rgb(100,100,100)"
-		subDiv.m_textColor = "rgb(255,255,255)"
-	elif(m_div.m_paint.m_defaultUIStyle == "light"):
-		subDiv.m_backColor = "rgb(255,255,255)"
-		subDiv.m_borderColor = "rgb(150,150,150)"
-		subDiv.m_textColor = "rgb(0,0,0)"
-	m_div.m_views.append(subDiv)
-	for j in range(0,10):
-		sunDiv = FCView()
-		sunDiv.m_location = FCPoint(j * 20, j * 40)
-		sunDiv.m_size = FCSize(100, 20)
-		sunDiv.m_text = "按钮" + str(i) + "," + str(j)
-		sunDiv.m_visible = TRUE;
-		sunDiv.m_parent = subDiv;
-		sunDiv.m_paint = m_paint;
-		sunDiv.m_allowDrag = TRUE;
-		if (m_div.m_paint.m_defaultUIStyle == "dark"):
-			sunDiv.m_backColor = "rgb(0,0,0)"
-			sunDiv.m_borderColor = "rgb(100,100,100)"
-			sunDiv.m_textColor = "rgb(255,255,255)"
-		elif (m_div.m_paint.m_defaultUIStyle == "light"):
-			sunDiv.m_backColor = "rgb(255,255,255)"
-			sunDiv.m_borderColor = "rgb(150,150,150)"
-			sunDiv.m_textColor = "rgb(0,0,0)"
-		subDiv.m_views.append(sunDiv)
+m_split.m_paint = m_paint
+if (m_split.m_paint.m_defaultUIStyle == "dark"):
+	m_split.m_backColor = "rgb(0,0,0)"
+	m_split.m_borderColor = "rgb(100,100,100)"
+	m_split.m_textColor = "rgb(255,255,255)"
+elif(m_split.m_paint.m_defaultUIStyle == "light"):
+	m_split.m_backColor = "rgb(255,255,255)"
+	m_split.m_borderColor = "rgb(150,150,150)"
+	m_split.m_textColor = "rgb(0,0,0)"
+
+m_split.m_dock = "fill"    
+m_paint.m_views.append(m_split)
+        
+m_splitter = FCView()
+if(m_split.m_paint.m_defaultUIStyle == "dark"):
+	m_splitter.m_backColor = "rgb(150,150,150)"
+elif(m_split.m_paint.m_defaultUIStyle == "light"):
+	m_splitter.m_backColor = "rgb(100,100,100)"
+        
+m_split.m_views.append(m_splitter)
+m_split.m_splitter = m_splitter
+m_splitter.m_location = FCPoint(200, 0)
+m_splitter.m_size = FCSize(5, 0)
+m_splitter.m_paint = m_paint
+m_splitter.m_parent = m_split
+        
+firstView = FCView()
+firstView.m_backColor = "rgb(255,0,0)"
+firstView.m_paint = m_paint
+firstView.m_parent = m_split
+m_split.m_views.append(firstView)
+m_split.m_firstView = firstView
+        
+secondView = FCView()
+secondView.m_backColor = "rgb(0,255,0)"
+secondView.m_paint = m_paint
+secondView.m_parent = m_split
+m_split.m_views.append(secondView)
+m_split.m_secondView = secondView
+m_split.m_oldSize = FCSize(m_split.m_size.cx, m_split.m_size.cy)
+resetSplitLayoutDiv(m_split)
 
 rect = win32gui.GetClientRect(hwnd)
 m_paint.m_size = FCSize(rect[2] - rect[0], rect[3] - rect[1])

@@ -278,59 +278,55 @@ reg = win32gui.RegisterClass(wc)
 hwnd = win32gui.CreateWindow(reg,'facecat-py',WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN,CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT,0,0,0,None)
 m_paint.m_hWnd = hwnd
 
-m_div = FCView()
-m_div.m_paint = m_paint
-if (m_div.m_paint.m_defaultUIStyle == "dark"):
-    m_div.m_backColor = "rgb(0,0,0)"
-    m_div.m_borderColor = "rgb(100,100,100)"
-    m_div.m_textColor = "rgb(255,255,255)"
-elif(m_div.m_paint.m_defaultUIStyle == "light"):
-    m_div.m_backColor = "rgb(255,255,255)"
-    m_div.m_borderColor = "rgb(150,150,150)"
-    m_div.m_textColor = "rgb(0,0,0)"
+m_tabView = FCTabView()
+m_tabView.m_paint = m_paint;
+if (m_tabView.m_paint.m_defaultUIStyle == "dark"):
+	m_tabView.m_backColor = "rgb(0,0,0)"
+	m_tabView.m_borderColor = "rgb(100,100,100)"
+	m_tabView.m_textColor = "rgb(255,255,255)"
+elif(m_tabView.m_paint.m_defaultUIStyle == "light"):
+	m_tabView.m_backColor = "rgb(255,255,255)"
+	m_tabView.m_borderColor = "rgb(150,150,150)"
+	m_tabView.m_textColor = "rgb(0,0,0)"
+m_tabView.m_dock = "fill"
+m_tabView.m_borderColor =  "none"
+m_tabView.m_underLineColor = "rgb(255,215,0)"
+m_tabView.m_layout = "bottom"
+m_paint.m_views.append(m_tabView)
 
-m_div.m_type = "div"
-m_div.m_showHScrollBar = TRUE
-m_div.m_showVScrollBar = TRUE
-m_div.m_dock = "fill"
-m_paint.m_views.append(m_div)
-for i in range(0,10):
-	subDiv = FCView()
-	subDiv.m_type = "div"
-	subDiv.m_location = FCPoint(i * 200, i * 200)
-	subDiv.m_size = FCSize(200, 200)
-	subDiv.m_text = "按钮" + str(i)
-	subDiv.m_showHScrollBar = TRUE
-	subDiv.m_showVScrollBar = TRUE
-	subDiv.m_parent = m_div;
-	subDiv.m_paint = m_paint;
-	if (m_div.m_paint.m_defaultUIStyle == "dark"):
-		subDiv.m_backColor = "rgb(0,0,0)"
-		subDiv.m_borderColor = "rgb(100,100,100)"
-		subDiv.m_textColor = "rgb(255,255,255)"
-	elif(m_div.m_paint.m_defaultUIStyle == "light"):
-		subDiv.m_backColor = "rgb(255,255,255)"
-		subDiv.m_borderColor = "rgb(150,150,150)"
-		subDiv.m_textColor = "rgb(0,0,0)"
-	m_div.m_views.append(subDiv)
-	for j in range(0,10):
-		sunDiv = FCView()
-		sunDiv.m_location = FCPoint(j * 20, j * 40)
-		sunDiv.m_size = FCSize(100, 20)
-		sunDiv.m_text = "按钮" + str(i) + "," + str(j)
-		sunDiv.m_visible = TRUE;
-		sunDiv.m_parent = subDiv;
-		sunDiv.m_paint = m_paint;
-		sunDiv.m_allowDrag = TRUE;
-		if (m_div.m_paint.m_defaultUIStyle == "dark"):
-			sunDiv.m_backColor = "rgb(0,0,0)"
-			sunDiv.m_borderColor = "rgb(100,100,100)"
-			sunDiv.m_textColor = "rgb(255,255,255)"
-		elif (m_div.m_paint.m_defaultUIStyle == "light"):
-			sunDiv.m_backColor = "rgb(255,255,255)"
-			sunDiv.m_borderColor = "rgb(150,150,150)"
-			sunDiv.m_textColor = "rgb(0,0,0)"
-		subDiv.m_views.append(sunDiv)
+for i in range(0,4):
+	tabPage = FCTabPage()
+	tabPage.m_paint = m_paint
+	if(i == 0):
+		tabPage.m_visible = TRUE
+	else:
+		tabPage.m_visible = FALSE
+	tabPage.m_borderColor = "none"
+	tabPage.m_parent = m_tabView
+	tabButton = FCView()
+	tabButton.m_paint = m_paint;
+	tabButton.m_type = "tabbutton"
+	tabButton.m_text = "第" + str(i + 1) + "页"
+	tabButton.m_size = FCSize(100, 20)
+	tabButton.m_textColor = "rgb(0,0,0)"
+	if(i == 0):
+		tabPage.m_backColor = "rgb(255,0,0)"
+	elif(i == 1):
+		tabPage.m_backColor = "rgb(0,255,0)"
+	elif(i == 2):
+		tabPage.m_backColor = "rgb(0,0,255)"
+	elif(i == 3):
+		tabPage.m_backColor = "rgb(255,0,255)"
+	addTabPage(m_tabView, tabPage, tabButton)
+	if (m_tabView.m_paint.m_defaultUIStyle == "dark"):
+		tabButton.m_backColor = "rgb(0,0,0)"
+		tabButton.m_borderColor = "rgb(100,100,100)"
+		tabButton.m_textColor = "rgb(255,255,255)"
+	elif (m_tabView.m_paint.m_defaultUIStyle == "light"):
+		tabButton.m_backColor = "rgb(255,255,255)"
+		tabButton.m_borderColor = "rgb(150,150,150)"
+		tabButton.m_textColor = "rgb(0,0,0)"
+updateTabLayout(m_tabView);
 
 rect = win32gui.GetClientRect(hwnd)
 m_paint.m_size = FCSize(rect[2] - rect[0], rect[3] - rect[1])
