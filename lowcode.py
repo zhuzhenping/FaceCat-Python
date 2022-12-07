@@ -244,23 +244,6 @@ def readXmlNode(paint, node, parent):
 			else:
 				readXmlNode(paint, child, view)
 
-
-#设置子视图的字符串
-#hwnd:句柄
-#text:字符串
-def setHWndText(hwnd, text):
-	win32gui.SendMessage(hwnd, WM_SETTEXT, None, text)
-
-#获取子视图的字符串
-#hwnd:句柄
-def getHWndText(hwnd):
-	length = win32gui.SendMessage(hwnd, WM_GETTEXTLENGTH) + 1
-	buf = win32gui.PyMakeBuffer(length)
-	win32api.SendMessage(hwnd, WM_GETTEXT, length, buf)
-	address, length = win32gui.PyGetBufferAddressAndLen(buf[:-1])
-	text = win32gui.PyGetString(address, length)
-	return text
-
 #绘制视图
 #view:视图
 #paint:绘图对象
@@ -302,8 +285,6 @@ def onViewPaintBorder(view, paint, drawRect):
 	elif(view.m_type == "div" or view.m_type =="tabpage" or view.m_type =="tabview"):
 		drawDivScrollBar(view, paint, drawRect)
 		drawDivBorder(view, paint, drawRect)
-
-m_addingPlot_Chart = ""
 
 #视图的鼠标移动方法
 #view 视图
@@ -356,63 +337,6 @@ def onViewMouseDown(view, mp, buttons, clicks, delta):
 		view.m_selectShape = ""
 		view.m_selectShapeEx = ""
 		facecat.m_mouseDownPoint_Chart = mp;
-		if(len(m_addingPlot_Chart) > 0):
-			if (mp.y < getCandleDivHeight(view)):
-				touchIndex = getChartIndex(view, mp)
-				if (touchIndex >= view.m_firstVisibleIndex and touchIndex <= view.m_lastVisibleIndex):
-					if(m_addingPlot_Chart == "FiboTimezone"):
-						fIndex = touchIndex
-						fDate = getChartDateByIndex(view, fIndex)
-						y = getCandleDivValue(view, mp)
-						newPlot = FCPlot()
-						if(view.m_paint.m_defaultUIStyle == "light"):
-							newPlot.m_lineColor = "rgb(0,0,0)"
-							newPlot.m_pointColor = "rgba(0,0,0,0.5)"
-						newPlot.m_key1 = fDate
-						newPlot.m_value1 = y
-						newPlot.m_plotType = m_addingPlot_Chart
-						view.m_plots.append(newPlot)
-						view.m_sPlot = selectPlot(view, mp)
-					elif (m_addingPlot_Chart == "Triangle" or m_addingPlot_Chart == "CircumCycle" or m_addingPlot_Chart == "ParalleGram" or m_addingPlot_Chart == "AngleLine" or m_addingPlot_Chart == "Parallel" or m_addingPlot_Chart == "SymmetricTriangle"):
-						eIndex = touchIndex;
-						bIndex = eIndex - 5;
-						if (bIndex >= 0):
-							fDate = getChartDateByIndex(view, bIndex)
-							sDate = getChartDateByIndex(view, eIndex)
-							y = getCandleDivValue(view, mp)
-							newPlot = FCPlot()
-							if(view.m_paint.m_defaultUIStyle == "light"):
-								newPlot.m_lineColor = "rgb(0,0,0)"
-								newPlot.m_pointColor = "rgba(0,0,0,0.5)"
-							newPlot.m_key1 = fDate
-							newPlot.m_value1 = y
-							newPlot.m_key2 = sDate
-							newPlot.m_value2 = y
-							newPlot.m_key3 = sDate
-							newPlot.m_value3 = view.m_candleMin + (view.m_candleMax - view.m_candleMin) / 2
-							newPlot.m_plotType = m_addingPlot_Chart
-							view.m_plots.append(newPlot)
-							view.m_sPlot = selectPlot(view, mp)
-					else:
-						eIndex = touchIndex
-						bIndex = eIndex - 5
-						if (bIndex >= 0):
-							fDate = getChartDateByIndex(view, bIndex)
-							sDate = getChartDateByIndex(view, eIndex)
-							y = getCandleDivValue(view, mp)
-							newPlot = FCPlot()
-							if(view.m_paint.m_defaultUIStyle == "light"):
-								newPlot.m_lineColor = "rgb(0,0,0)"
-								newPlot.m_pointColor = "rgba(0,0,0,0.5)"
-							newPlot.m_key1 = fDate
-							newPlot.m_value1 = y
-							newPlot.m_key2 = sDate
-							newPlot.m_value2 = y
-							newPlot.m_plotType = m_addingPlot_Chart
-							view.m_plots.append(newPlot)
-							view.m_sPlot = selectPlot(view, mp)
-			m_addingPlot_Chart = ""
-		view.m_sPlot = selectPlot(view, mp)
 		if (view.m_sPlot == None):
 			selectShape(view, mp)
 	elif(view.m_type == "div"):
@@ -470,15 +394,6 @@ def onViewClick(view, mp, buttons, clicks, delta):
 			if(tabView.m_tabPages[i].m_headerButton == view):
 				selectTabPage(tabView, tabView.m_tabPages[i])
 		invalidateView(tabView, tabView.m_paint)
-	elif(view.m_type == "plot"):
-		m_addingPlot_Chart = view.m_text
-	elif(view.m_type == "indicator"):
-		if (view.m_text == "BOLL" or view.m_text == "MA"):
-			m_chart.m_mainIndicator = view.m_text
-		else:
-			m_chart.m_showIndicator = view.m_text
-		calcChartIndicator(m_chart)
-		invalidateView(m_chart, m_chart.m_paint)
 
 #视图的鼠标滚动方法
 #view 视图
@@ -574,115 +489,20 @@ wc.lpfnWndProc = WndProc
 reg = win32gui.RegisterClass(wc)
 hwnd = win32gui.CreateWindow(reg,'facecat-py',WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN,CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT,0,0,0,None)
 m_paint.m_hWnd = hwnd
-showChart = FALSE
-if(showChart):
-	m_split = FCSplitLayoutDiv()
-	m_split.m_dock = "fill"
-	m_split.m_paint = m_paint
-	m_split.m_size = FCSize(400, 400)
-	m_paint.m_views.append(m_split)
-	m_chart = FCChart()
-	m_chart.m_leftVScaleWidth = 80
-	m_chart.m_textColor = "rgb(255,255,255)"
-	m_chart.m_paint = m_paint
-	m_chart.m_parent = m_split
-	m_chart.m_mainIndicator = "MA" 
-	m_chart.m_showIndicator = "MACD" 
-	m_split.m_views.append(m_chart)
-	m_layout = FCView()
-	m_layout.m_paint = m_paint
-	m_layout.m_type = "div"
-	m_layout.m_parent = m_split
-	m_layout.m_showHScrollBar = TRUE
-	m_layout.m_showVScrollBar = TRUE
-	m_layout.m_allowDragScroll = TRUE
-	m_layout.m_scrollSize = 0
-	m_split.m_views.append(m_layout)
-	m_splitter = FCView()
-	m_splitter.m_location = FCPoint(0, 340)
-	m_splitter.m_size = FCSize(400, 1)
-	m_splitter.m_paint = m_paint
-	m_splitter.m_parent = m_split
-	m_split.m_views.append(m_splitter)
-	m_split.m_firstView = m_layout
-	m_split.m_secondView = m_chart
-	m_split.m_splitter = m_splitter
-	m_split.m_layoutStyle = "bottomtotop"
-	m_split.m_oldSize = FCSize(400, 400)
-	plots = []
-	plots.append("Line")
-	plots.append("Segment")
-	plots.append("Ray")
-	plots.append("Triangle")
-	plots.append("Rect")
-	plots.append("Cycle")
-	plots.append("CircumCycle")
-	plots.append("Ellipse")
-	plots.append("AngleLine")
-	plots.append("ParalleGram")
-	plots.append("SpeedResist")
-	plots.append("FiboFanline")
-	plots.append("FiboTimezone")
-	plots.append("Percent")
-	plots.append("BoxLine")
-	plots.append("TironeLevels")
-	plots.append("Parallel")
-	plots.append("GoldenRatio")
-	plots.append("LRLine")
-	plots.append("LRChannel")
-	plots.append("LRBand")
-	for i in range(0, len(plots)):
-		subView = FCView()
-		subView.m_type = "plot"
-		subView.m_text = plots[i]
-		subView.m_name = plots[i]
-		subView.m_location = FCPoint(i * 100 + 1, 1)
-		subView.m_size = FCSize(98, 28)
-		subView.m_paint = m_paint
-		subView.m_parent = m_layout
-		subView.m_allowDrag = TRUE
-		m_layout.m_views.append(subView)
-		if(subView.m_paint.m_defaultUIStyle == "dark"):
-			subView.m_backColor = "rgb(0,0,0)"
-			subView.m_borderColor = "rgb(100,100,100)"
-			subView.m_textColor = "rgb(255,255,255)"
-		elif(subView.m_paint.m_defaultUIStyle == "light"):
-			subView.m_backColor = "rgb(255,255,255)"
-			subView.m_borderColor = "rgb(150,150,150)"
-			subView.m_textColor = "rgb(0,0,0)"
-	indicators = []
-	indicators.append("MA")
-	indicators.append("BOLL")
-	indicators.append("MACD")
-	indicators.append("KDJ")
-	indicators.append("BIAS")
-	indicators.append("ROC")
-	indicators.append("WR")
-	indicators.append("DMA")
-	indicators.append("RSI")
-	indicators.append("BBI")
-	indicators.append("CCI")
-	indicators.append("TRIX")
-	for i in range(0, len(indicators)):
-		subView = FCView()
-		subView.m_type = "indicator"
-		subView.m_text = indicators[i]
-		subView.m_name = indicators[i]
-		subView.m_location = FCPoint(i * 100 + 1, 30)
-		subView.m_size = FCSize(98, 28)
-		subView.m_paint = m_paint
-		subView.m_allowDrag = TRUE
-		subView.m_parent = m_layout
-		m_layout.m_views.append(subView)
-		if(subView.m_paint.m_defaultUIStyle == "dark"):
-			subView.m_backColor = "rgb(0,0,0)"
-			subView.m_borderColor = "rgb(100,100,100)"
-			subView.m_textColor = "rgb(255,255,255)"
-		elif(subView.m_paint.m_defaultUIStyle == "light"):
-			subView.m_backColor = "rgb(255,255,255)"
-			subView.m_borderColor = "rgb(150,150,150)"
-			subView.m_textColor = "rgb(0,0,0)"
-	resetSplitLayoutDiv(m_split)
+
+root  = ET.fromstring(m_xml)
+for child in root:
+	if(child.tag == "{facecat}body"):
+		readXmlNode(m_paint, child, None)
+showDemoData = TRUE
+if(showDemoData):
+	gridLatestData = findViewByName("gridLatestData", m_paint.m_views)
+	gridNoTrade = findViewByName("gridNoTrade", m_paint.m_views)
+	gridInvestorPosition = findViewByName("gridInvestorPosition", m_paint.m_views)
+	chart = findViewByName("chart", m_paint.m_views)
+	chart.m_candleDivPercent = 0.7
+	chart.m_volDivPercent = 0.3
+	chart.m_indDivPercent = 0
 	try:
 		s = requests.Session()
 		s.mount('http://', HTTPAdapter(max_retries=3))
@@ -700,86 +520,49 @@ if(showChart):
 				data.m_high = float(subStrs[4])
 				data.m_low = float(subStrs[5])
 				data.m_open = float(subStrs[6])
+				lastClose = 0
+				if(subStrs[7] != "None"):
+					lastClose = float(subStrs[7])
 				data.m_volume = float(subStrs[11])
-				m_chart.m_data.append(data)
+				chart.m_data.append(data)
+				if(gridLatestData != None):
+					row = FCGridRow()
+					gridLatestData.m_rows.append(row)
+					for c in range(0, len(gridLatestData.m_columns)):
+						cell = FCGridCell()
+						if(c < len(subStrs)):
+							cell.m_value = subStrs[c]
+						row.m_cells.append(cell)
+						if(cell.m_value != None):
+							if(c >= 3 and c <= 6):
+								if(float(cell.m_value) >= lastClose):
+									cell.m_textColor = "rgb(219,68,83)"
+								else:
+									cell.m_textColor = "rgb(15,193,118)"
+							elif(c == 0):
+								cell.m_textColor = "rgb(255,255,0)"
+							elif(c == 1):
+								cell.m_textColor = "rgb(0,255,255)"
+				if(gridInvestorPosition != None):
+					row = FCGridRow()
+					gridInvestorPosition.m_rows.append(row)
+					for c in range(0, len(gridInvestorPosition.m_columns)):
+						cell = FCGridCell()
+						if(c < len(subStrs)):
+							cell.m_value = subStrs[c]
+						row.m_cells.append(cell)
+				if(gridNoTrade != None):
+					row = FCGridRow()
+					gridNoTrade.m_rows.append(row)
+					for c in range(0, len(gridNoTrade.m_columns)):
+						cell = FCGridCell()
+						if(c < len(subStrs)):
+							cell.m_value = subStrs[c]
+						row.m_cells.append(cell)
 			pos = pos - 1
 	except requests.exceptions.RequestException as e:
 		print(e)
-	calcChartIndicator(m_chart)
-else:
-	root  = ET.fromstring(m_xml)
-	for child in root:
-		if(child.tag == "{facecat}body"):
-			readXmlNode(m_paint, child, None)
-	showDemoData = TRUE
-	if(showDemoData):
-		gridLatestData = findViewByName("gridLatestData", m_paint.m_views)
-		gridNoTrade = findViewByName("gridNoTrade", m_paint.m_views)
-		gridInvestorPosition = findViewByName("gridInvestorPosition", m_paint.m_views)
-		chart = findViewByName("chart", m_paint.m_views)
-		chart.m_candleDivPercent = 0.7
-		chart.m_volDivPercent = 0.3
-		chart.m_indDivPercent = 0
-		try:
-			s = requests.Session()
-			s.mount('http://', HTTPAdapter(max_retries=3))
-			response = s.get('http://quotes.money.163.com/service/chddata.html?code=0000001', timeout=5)
-			text = response.text
-			strs = text.split("\r\n")
-			strLen = len(strs)
-			pos = strLen - 2
-			for i in range(0, strLen - 3):
-				subStrs = strs[pos].split(",")
-				if(len(subStrs) > 8):
-					data = SecurityData()
-					data.m_date = i
-					data.m_close = float(subStrs[3])
-					data.m_high = float(subStrs[4])
-					data.m_low = float(subStrs[5])
-					data.m_open = float(subStrs[6])
-					lastClose = 0
-					if(subStrs[7] != "None"):
-						lastClose = float(subStrs[7])
-					data.m_volume = float(subStrs[11])
-					chart.m_data.append(data)
-					if(gridLatestData != None):
-						row = FCGridRow()
-						gridLatestData.m_rows.append(row)
-						for c in range(0, len(gridLatestData.m_columns)):
-							cell = FCGridCell()
-							if(c < len(subStrs)):
-								cell.m_value = subStrs[c]
-							row.m_cells.append(cell)
-							if(cell.m_value != None):
-								if(c >= 3 and c <= 6):
-									if(float(cell.m_value) >= lastClose):
-										cell.m_textColor = "rgb(219,68,83)"
-									else:
-										cell.m_textColor = "rgb(15,193,118)"
-								elif(c == 0):
-									cell.m_textColor = "rgb(255,255,0)"
-								elif(c == 1):
-									cell.m_textColor = "rgb(0,255,255)"
-					if(gridInvestorPosition != None):
-						row = FCGridRow()
-						gridInvestorPosition.m_rows.append(row)
-						for c in range(0, len(gridInvestorPosition.m_columns)):
-							cell = FCGridCell()
-							if(c < len(subStrs)):
-								cell.m_value = subStrs[c]
-							row.m_cells.append(cell)
-					if(gridNoTrade != None):
-						row = FCGridRow()
-						gridNoTrade.m_rows.append(row)
-						for c in range(0, len(gridNoTrade.m_columns)):
-							cell = FCGridCell()
-							if(c < len(subStrs)):
-								cell.m_value = subStrs[c]
-							row.m_cells.append(cell)
-				pos = pos - 1
-		except requests.exceptions.RequestException as e:
-			print(e)
-		calcChartIndicator(chart)
+	calcChartIndicator(chart)
 rect = win32gui.GetClientRect(hwnd)
 m_paint.m_size = FCSize(rect[2] - rect[0], rect[3] - rect[1])
 for view in m_paint.m_views:
