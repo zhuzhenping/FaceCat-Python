@@ -174,7 +174,10 @@ def onViewClick(view, mp, buttons, clicks, delta):
 	global m_addingPlot_Chart
 	if(view.m_type == "radiobutton"):
 		clickRadioButton(view, mp)
-		invalidateView(view, view.m_paint)
+		if(view.m_parent != None):
+			invalidateView(view.m_parent, view.m_parent.m_paint)
+		else:
+			invalidateView(view, view.m_paint)
 	elif(view.m_type == "checkbox"):
 		clickCheckBox(view, mp)
 		invalidateView(view, view.m_paint)

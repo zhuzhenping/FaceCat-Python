@@ -9,6 +9,7 @@ import win32api
 from win32con import *
 import math
 import time
+from operator import attrgetter
 
 #坐标结构
 class FCPoint(object):
@@ -77,6 +78,7 @@ class FCPaint(object):
 	def beginPaint(self, rect):
 		self.m_drawHDC = win32gui.CreateCompatibleDC(self.m_hdc)
 		win32gui.SetBkMode(self.m_drawHDC, TRANSPARENT)
+		win32gui.SetGraphicsMode(self.m_drawHDC, GM_ADVANCED)
 		self.m_memBM = win32gui.CreateCompatibleBitmap(self.m_hdc, int(rect.right - rect.left),  int(rect.bottom - rect.top))
 		win32gui.SelectObject(self.m_drawHDC, self.m_memBM)
 		self.m_moveTo = FALSE;
@@ -148,8 +150,13 @@ class FCPaint(object):
 			if (self.m_scaleFactorX != 1 or self.m_scaleFactorY != 1):
 				x = m_scaleFactorX * x;
 				y = m_scaleFactorY * y;
-			apt[i] = (int(x), int(y))
-		win32gui.Polygon(self.m_innerHDC, apt)
+			if(i == 0):
+				win32gui.MoveToEx(self.m_innerHDC, int(x), int(y))
+			else:
+				win32gui.LineTo(self.m_innerHDC, int(x), int(y))
+			if(i == len(apt) - 1):
+				fx,fy = apt[0]
+				win32gui.LineTo(self.m_innerHDC, int(fx), int(fy))
 		win32gui.SelectObject(self.m_innerHDC, hOldPen)
 		win32gui.DeleteObject(hPen)
 	#绘制矩形 
@@ -238,6 +245,25 @@ class FCPaint(object):
 		pyRect = (int((left + self.m_offsetX) * self.m_scaleFactorX), int((top + self.m_offsetY) * self.m_scaleFactorY), int((right + self.m_offsetX + 1) * self.m_scaleFactorX), int((bottom + self.m_offsetY + 1) * self.m_scaleFactorY))
 		win32gui.FillRect(self.m_innerHDC, pyRect, brush)
 		win32gui.DeleteObject(brush)
+	#填充多边形 
+	#color:颜色
+	#left:左侧坐标 
+	#top:上方坐标 
+	#right:右侧坐标 
+	#bottom:下方坐标
+	def fillPolygon(self, color, apt):
+		brush = win32gui.CreateSolidBrush(toColor(color))
+		win32gui.SelectObject(self.m_innerHDC, brush)
+		for i in range(0,len(apt)):
+			x,y = apt[i]
+			x = x + self.m_offsetX
+			y = y + self.m_offsetY
+			if (self.m_scaleFactorX != 1 or self.m_scaleFactorY != 1):
+				x = m_scaleFactorX * x;
+				y = m_scaleFactorY * y;
+			apt[i] = (int(x), int(y))
+		win32gui.Polygon(self.m_innerHDC, apt)
+		win32gui.DeleteObject(brush)
 	#填充椭圆 
 	#color:颜色
 	#left:左侧坐标 
@@ -279,6 +305,7 @@ class FCPaint(object):
 	#rect:区域
 	def beginClip(self, rect):
 		self.m_innerHDC = win32gui.CreateCompatibleDC(self.m_drawHDC)
+		win32gui.SetGraphicsMode(self.m_innerHDC, GM_ADVANCED)
 		win32gui.SetBkMode(self.m_innerHDC, TRANSPARENT)
 		self.m_offsetX = 0
 		self.m_offsetY = 0
@@ -439,10 +466,11 @@ class FCGridColumn(object):
 		self.m_borderColor = "rgb(100,100,100)" #边线颜色
 		self.m_textColor = "rgb(200,200,200)" #文字颜色
 		self.m_frozen = FALSE #是否冻结
-		self.m_sort = "" #排序模式
+		self.m_sort = "none" #排序模式
 		self.m_visible = TRUE #是否可见
 		self.m_index = -1 #索引
 		self.m_bounds = FCRect(0,0,0,0) #区域
+		self.m_allowSort = TRUE #是否允许排序
 
 #表格列
 class FCGridCell(object):	
@@ -462,6 +490,7 @@ class FCGridRow(object):
 		self.m_cells = [] #单元格
 		self.m_selected = FALSE #是否选中
 		self.m_visible = TRUE #是否可见
+		self.m_key = "" #排序键值
 
 #多页夹
 class FCGrid(FCView):
@@ -862,10 +891,14 @@ def clickCheckBox(checkBox, mp):
 #点击单选按钮 
 #radioButton:视图
 def clickRadioButton(radioButton, mp):
-	if(radioButton.m_checked):
-		radioButton.m_checked = FALSE
-	else:
-		radioButton.m_checked = TRUE
+	hasOther = FALSE
+	if(radioButton.m_parent != None and len(radioButton.m_parent.m_views) > 0):
+		for i in range(0, len(radioButton.m_parent.m_views)):
+			rView = radioButton.m_parent.m_views[i]
+			if(rView.m_type == "radiobutton"):
+				if(rView != radioButton and rView.m_groupName == radioButton.m_groupName):
+					rView.m_checked = FALSE
+	radioButton.m_checked = TRUE
 
 #重绘按钮 
 #button:视图 
@@ -905,7 +938,6 @@ def getDivContentHeight(div):
 			if(cHeight < view.m_location.y + view.m_size.cy):
 			        cHeight = view.m_location.y + view.m_size.cy
 	return cHeight
-
 
 #绘制滚动条 
 #div:图层 
@@ -1466,6 +1498,31 @@ def drawGridColumn(grid, column, paint, left, top, right, bottom):
 	if (column.m_borderColor != "none"):
 		paint.drawRect(column.m_borderColor, 1, 0, left, top, right, bottom)
 	paint.drawText(column.m_text, column.m_textColor, column.m_font, left + (column.m_width - tSize.cx) / 2, top + grid.m_headerHeight / 2 - tSize.cy / 2)
+	if (column.m_sort == "asc"):
+		cR = (bottom - top) / 4
+		oX = right - cR * 2
+		oY = top + (bottom - top) / 2
+		drawPoints = []
+		drawPoints.append((oX, oY - cR))
+		drawPoints.append((oX - cR, oY + cR))
+		drawPoints.append((oX + cR, oY + cR))
+		paint.fillPolygon(column.m_textColor, drawPoints)
+	elif (column.m_sort == "desc"):
+		cR = (bottom - top) / 4
+		oX = right - cR * 2
+		oY = top + (bottom - top) / 2
+		drawPoints = []
+		drawPoints.append((oX, oY + cR))
+		drawPoints.append((oX - cR, oY - cR))
+		drawPoints.append((oX + cR, oY - cR))
+		paint.fillPolygon(column.m_textColor, drawPoints)
+	
+	
+
+m_paintGridCellCallBack = None #绘制单元格回调
+m_paintGridColumnCallBack = None #绘制列头的回调
+m_clickGridCellCallBack = None #点击单元格的回调
+m_clickGridColumnCallBack = None #点击列头的回调
 
 #绘制表格 
 #grid:表格
@@ -1510,7 +1567,10 @@ def drawGrid(grid, paint, clipRect):
 										cellHeight += grid.m_rowHeight
 							cRect = FCRect(gridColumn.m_bounds.left - grid.m_scrollH, rTop, gridColumn.m_bounds.left + cellWidth - grid.m_scrollH, rTop + cellHeight)
 							if (cRect.right >= 0 and cRect.left < grid.m_size.cx):
-							    drawGridCell(grid, row, gridColumn, cell, paint, cRect.left, cRect.top, cRect.right, cRect.bottom)
+								if(m_paintGridCellCallBack != None):
+									m_paintGridCellCallBack(grid, row, gridColumn, cell, paint, cRect.left, cRect.top, cRect.right, cRect.bottom)
+								else:
+									drawGridCell(grid, row, gridColumn, cell, paint, cRect.left, cRect.top, cRect.right, cRect.bottom)
 			if (rBottom >= 0 and cTop <= grid.m_size.cy):
 				for j in range(0, len(row.m_cells)):
 					cell = row.m_cells[j]
@@ -1535,7 +1595,10 @@ def drawGrid(grid, paint, clipRect):
 										cellHeight += grid.m_rowHeight
 							cRect = FCRect(gridColumn.m_bounds.left, rTop, gridColumn.m_bounds.left + cellWidth, rTop + cellHeight)
 							if (cRect.right >= 0 and cRect.left < grid.m_size.cx):
-							    drawGridCell(grid, row, gridColumn, cell, paint, cRect.left, cRect.top, cRect.right, cRect.bottom)
+								if(m_paintGridCellCallBack != None):
+									m_paintGridCellCallBack(grid, row, gridColumn, cell, paint, cRect.left, cRect.top, cRect.right, cRect.bottom)
+								else:
+									drawGridCell(grid, row, gridColumn, cell, paint, cRect.left, cRect.top, cRect.right, cRect.bottom)
 			if (cTop > grid.m_size.cy):
 				break;
 			cTop += grid.m_rowHeight
@@ -1543,13 +1606,19 @@ def drawGrid(grid, paint, clipRect):
 		for gridColumn in grid.m_columns:
 			if (gridColumn.m_visible):
 				if (gridColumn.m_frozen == FALSE):
-				    drawGridColumn(grid, gridColumn, paint, cLeft, 0, cLeft + gridColumn.m_width, grid.m_headerHeight)
+					if(m_paintGridColumnCallBack != None):
+						m_paintGridColumnCallBack(grid, gridColumn, paint, cLeft, 0, cLeft + gridColumn.m_width, grid.m_headerHeight)
+					else:
+						drawGridColumn(grid, gridColumn, paint, cLeft, 0, cLeft + gridColumn.m_width, grid.m_headerHeight)
 				cLeft += gridColumn.m_width
 		cLeft = 0;
 		for gridColumn in grid.m_columns:
 			if (gridColumn.m_visible):
 				if (gridColumn.m_frozen):
-				    drawGridColumn(grid, gridColumn, paint, cLeft, 0, cLeft + gridColumn.m_width, grid.m_headerHeight)
+					if(m_paintGridColumnCallBack != None):
+						m_paintGridColumnCallBack(grid, gridColumn, paint, cLeft, 0, cLeft + gridColumn.m_width, grid.m_headerHeight)
+					else:
+						drawGridColumn(grid, gridColumn, paint, cLeft, 0, cLeft + gridColumn.m_width, grid.m_headerHeight)
 				cLeft += gridColumn.m_width
 
 #绘制表格的滚动条 
@@ -1722,6 +1791,8 @@ def mouseUpGrid(grid, firstTouch, secondTouch, firstPoint, secondPoint):
 											subRow.m_selected = TRUE
 										else:
 											subRow.m_selected = FALSE
+									if(m_clickGridCellCallBack != None):
+										m_clickGridCellCallBack(grid, row, gridColumn, cell, firstTouch, secondTouch, firstPoint, secondPoint)
 									return;
 			if (rBottom >= 0 and cTop <= grid.m_size.cy):
 				for j in range(0, len(row.m_cells)):
@@ -1753,6 +1824,8 @@ def mouseUpGrid(grid, firstTouch, secondTouch, firstPoint, secondPoint):
 											subRow.m_selected = TRUE
 										else:
 											subRow.m_selected = FALSE
+									if(m_clickGridCellCallBack != None):
+										m_clickGridCellCallBack(grid, row, gridColumn, cell, firstTouch, secondTouch, firstPoint, secondPoint)
 									return
 			if (cTop > grid.m_size.cy):
 				break;
@@ -1760,16 +1833,54 @@ def mouseUpGrid(grid, firstTouch, secondTouch, firstPoint, secondPoint):
 	if (grid.m_headerHeight > 0):
 		for gridColumn in grid.m_columns:
 			if (gridColumn.m_visible):
-				if (gridColumn.m_frozen == FALSE):
-				    if(firstPoint.x >= cLeft and firstPoint.x <= cLeft + gridColumn.m_width):
-				        return;
+				if (gridColumn.m_frozen):
+					if(firstPoint.x >= cLeft and firstPoint.x <= cLeft + gridColumn.m_width):
+						for j in range(0, len(grid.m_columns)):
+							tColumn = grid.m_columns[j]
+							if (tColumn == gridColumn):
+								if (tColumn.m_allowSort):
+									for r in range(0, len(grid.m_rows)):
+										if(len(grid.m_rows[r].m_cells) > j):
+											grid.m_rows[r].m_key = grid.m_rows[r].m_cells[j].m_value
+									if (tColumn.m_sort == "none" or tColumn.m_sort == "desc"):
+										tColumn.m_sort = "asc"
+										grid.m_rows = sorted(grid.m_rows, key=attrgetter('m_key'), reverse=False)
+									else:
+										tColumn.m_sort = "desc"
+										grid.m_rows = sorted(grid.m_rows, key=attrgetter('m_key'), reverse=True)
+								else:
+									tColumn.m_sort = "none"
+							else:
+								tColumn.m_sort = "none"
+						if(m_clickGridColumnCallBack != None):
+							m_clickGridColumnCallBack(grid, gridColumn, firstTouch, secondTouch, firstPoint, secondPoint)
+						return
 				cLeft += gridColumn.m_width
 		cLeft = 0;
 		for gridColumn in grid.m_columns:
 			if (gridColumn.m_visible):
-				if (gridColumn.m_frozen):
-				    if(firstPoint.x >= cLeft and firstPoint.x <= cLeft + gridColumn.m_width):
-				        return;
+				if (gridColumn.m_frozen == FALSE):
+					if(firstPoint.x >= cLeft and firstPoint.x <= cLeft + gridColumn.m_width):
+						for j in range(0, len(grid.m_columns)):
+							tColumn = grid.m_columns[j]
+							if (tColumn == gridColumn):
+								if (tColumn.m_allowSort):
+									for r in range(0, len(grid.m_rows)):
+										if(len(grid.m_rows[r].m_cells) > j):
+											grid.m_rows[r].m_key = grid.m_rows[r].m_cells[j].m_value
+									if (tColumn.m_sort == "none" or tColumn.m_sort == "desc"):
+										tColumn.m_sort = "asc"
+										grid.m_rows = sorted(grid.m_rows, key=attrgetter('m_key'), reverse=False)
+									else:
+										tColumn.m_sort = "desc"
+										grid.m_rows = sorted(grid.m_rows, key=attrgetter('m_key'), reverse=True)
+								else:
+									tColumn.m_sort = "none"
+							else:
+								tColumn.m_sort = "none"
+						if(m_clickGridColumnCallBack != None):
+							m_clickGridColumnCallBack(grid, gridColumn, firstTouch, secondTouch, firstPoint, secondPoint)
+						return
 				cLeft += gridColumn.m_width
 
 #获取内容的宽度
@@ -1847,7 +1958,7 @@ def drawTreeNode(tree, row, column, node, paint, left, top, right, bottom):
 				drawPoints.append((wLeft + (tree.m_collapsedWidth - cR) / 2, top + (tree.m_rowHeight - cR) / 2))
 				drawPoints.append((wLeft + (tree.m_collapsedWidth + cR) / 2, top + (tree.m_rowHeight - cR) / 2))
 				drawPoints.append((wLeft + tree.m_collapsedWidth / 2, top + (tree.m_rowHeight + cR) / 2))
-			paint.drawPolygon(node.m_textColor, 1, 0, drawPoints)
+			paint.fillPolygon(node.m_textColor, drawPoints)
 			wLeft += tree.m_collapsedWidth
 		if (tSize.cx > column.m_width):
 			paint.drawTextAutoEllipsis(node.m_value, node.m_textColor, node.m_font, wLeft, top + tree.m_rowHeight / 2, wLeft + column.m_width, top + tree.m_rowHeight / 2)
@@ -1859,6 +1970,9 @@ def drawTreeNode(tree, row, column, node, paint, left, top, right, bottom):
 def updateTreeRowIndex(tree):
 	for i in range(0,len(tree.m_rows)):
 		tree.m_rows[i].m_index = i
+
+m_paintTreeNodeCallBack = None #绘图树节点的回调
+m_clickTreeNode = None #点击树节点的事件
 
 #绘制树
 #tree:树
@@ -1890,7 +2004,10 @@ def drawTree(tree, paint, clipRect):
 						nodeHeight = tree.m_rowHeight
 						cRect = FCRect(treeColumn.m_bounds.left - tree.m_scrollH, rTop, treeColumn.m_bounds.left + nodeWidth - tree.m_scrollH, rTop + nodeHeight)
 						if (cRect.right >= 0 and cRect.left < tree.m_size.cx):
-						    drawTreeNode(tree, row, treeColumn, node, paint, cRect.left, cRect.top, cRect.right, cRect.bottom);
+							if(m_paintTreeNodeCallBack != None):
+								m_paintTreeNodeCallBack(tree, row, treeColumn, node, paint, cRect.left, cRect.top, cRect.right, cRect.bottom);
+							else:
+								drawTreeNode(tree, row, treeColumn, node, paint, cRect.left, cRect.top, cRect.right, cRect.bottom);
 			if (cTop > tree.m_size.cy):
 				break
 			cTop += tree.m_rowHeight
@@ -2128,6 +2245,8 @@ def mouseUpTree(tree, firstTouch, secondTouch, firstPoint, secondPoint):
 							node.m_collapsed = TRUE
 							hideOrShowTreeNode(node, FALSE)
 						break
+				if(m_clickTreeNode != None):
+					m_clickTreeNode(tree, node, firstTouch, secondTouch, firstPoint, secondPoint)
 			cTop += tree.m_rowHeight
 
 m_k_Chart = 0
@@ -3916,7 +4035,7 @@ def drawChartPlot(chart, pPaint, clipRect):
 				drawPoints[5].x = pts[2].x
 				drawPoints[5].y = pts[2].y
 
-				paint.drawPolygon(plot.m_lineColor, 1, 0, drawPoints)
+				paint.fillPolygon(plot.m_lineColor, drawPoints)
 			elif(plot.m_plotType == "AngleLine"):
 				lineXY(mpx1, mpy1, mpx2, mpy2, 0, 0)
 				if(mpx2 == mpx1):
@@ -5255,6 +5374,11 @@ def drawChartStock(chart, paint, clipRect):
 				else:
 					drawChartLines(chart, paint, clipRect, 2, chart.m_dma2, m_indicatorColors[1], FALSE)
 
+m_paintChartScale = None #绘制坐标轴回调
+m_paintChartStock = None #绘制K线回调
+m_paintChartPlot = None #绘制画线回调
+m_paintChartCrossLine = None #绘制十字线回调
+
 #清除图形
 #chart:K线
 #paint:绘图对象
@@ -5262,10 +5386,22 @@ def drawChartStock(chart, paint, clipRect):
 def drawChart(chart, paint, clipRect):
 	if (chart.m_backColor != "none"):
 		paint.fillRect(chart.m_backColor, 0, 0, chart.m_size.cx, chart.m_size.cy)
-	drawChartScale(chart, paint, clipRect)
-	drawChartStock(chart, paint, clipRect)
-	drawChartPlot(chart, paint, clipRect)
-	drawChartCrossLine(chart, paint, clipRect);
+	if(m_paintChartScale != None):
+		m_paintChartScale(chart, paint, clipRect)
+	else:
+		drawChartScale(chart, paint, clipRect)
+	if(m_paintChartStock != None):
+		m_paintChartStock(chart, paint, clipRect)
+	else:
+		drawChartStock(chart, paint, clipRect)
+	if(m_paintChartPlot != None):
+		m_paintChartPlot(chart, paint, clipRect)
+	else:
+		drawChartPlot(chart, paint, clipRect)
+	if(m_paintChartCrossLine != None):
+		m_paintChartCrossLine(chart, paint, clipRect)
+	else:
+		drawChartCrossLine(chart, paint, clipRect)
 	if (chart.m_borderColor != "none"):
 		paint.drawRect(chart.m_borderColor, m_lineWidth_Chart, 0, 0, 0, chart.m_size.cx - 1, chart.m_size.cy - 1)
 

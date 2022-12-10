@@ -240,6 +240,8 @@ def readXmlNode(paint, node, parent):
 			elif(typeStr == "text"):
 				view.m_hWnd = win32gui.CreateWindowEx(0, "Edit", view.m_name, WS_VISIBLE|WS_CHILD|SS_CENTERIMAGE, 0, 0, 100, 30, paint.m_hWnd, 0, 0, None)
 				win32gui.ShowWindow(view.m_hWnd, SW_HIDE)
+				s = win32gui.GetWindowLong(view.m_hWnd, GWL_EXSTYLE)
+				win32gui.SetWindowLong(view.m_hWnd, GWL_EXSTYLE, s|ES_CENTER)
 				setHWndText(view.m_hWnd, view.m_text)
 			else:
 				readXmlNode(paint, child, view)
@@ -384,7 +386,10 @@ def onViewClick(view, mp, buttons, clicks, delta):
 	global m_addingPlot_Chart
 	if(view.m_type == "radiobutton"):
 		clickRadioButton(view, mp)
-		invalidateView(view, view.m_paint)
+		if(view.m_parent != None):
+			invalidateView(view.m_parent, view.m_parent.m_paint)
+		else:
+			invalidateView(view, view.m_paint)
 	elif(view.m_type == "checkbox"):
 		clickCheckBox(view, mp)
 		invalidateView(view, view.m_paint)
