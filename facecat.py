@@ -5447,7 +5447,7 @@ def renderViews(views, paint, rect):
 				subViews = view.m_views
 				subViewsSize = len(subViews)
 				if(subViewsSize > 0):
-					renderViews(subViews, paint, rect)
+					renderViews(subViews, paint, None)
 				view.m_clipRect = None
 	for i in range(0, size):
 		view = views[size - i - 1]
@@ -5478,7 +5478,7 @@ def renderViews(views, paint, rect):
 				subViews = view.m_views
 				subViewsSize = len(subViews)
 				if(subViewsSize > 0):
-					renderViews(subViews, paint, rect)
+					renderViews(subViews, paint, None)
 				view.m_clipRect = None	
 
 #全局刷新方法
