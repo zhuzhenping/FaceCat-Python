@@ -135,6 +135,9 @@ def readXmlNode(paint, node, parent):
 			view = FCChart()
 		elif(nodeName == "tree"):
 			view = FCTree()
+		elif(nodeName == "select"):
+			view = FCView()
+			view.m_type = "textbox"
 		elif(nodeName == "input"):
 			if "type" in child.attrib:
 				typeStr = child.attrib["type"]
@@ -145,7 +148,7 @@ def readXmlNode(paint, node, parent):
 			elif(typeStr == "button"):
 				view = FCView()
 				view.m_type = "button"
-			elif(typeStr == "text"):
+			elif(typeStr == "text" or typeStr == "range" or typeStr == "datetime"):
 				view = FCView()
 				view.m_type = "textbox"
 			else:
