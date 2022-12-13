@@ -1459,11 +1459,11 @@ def drawGridCell(grid, row, column, cell, paint, left, top, right, bottom):
 	if (cell.m_borderColor != "none"):
 		paint.drawRect(cell.m_borderColor, 1, 0, left, top, right, bottom)
 	if (cell.m_value != None):
-		tSize = paint.textSize(cell.m_value, cell.m_font)
+		tSize = paint.textSize(str(cell.m_value), cell.m_font)
 		if (tSize.cx > column.m_width):
-			paint.drawTextAutoEllipsis(cell.m_value, cell.m_textColor, cell.m_font, left + 2, top + grid.m_rowHeight / 2, left + 2 + column.m_width, top + grid.m_rowHeight / 2)
+			paint.drawTextAutoEllipsis(str(cell.m_value), cell.m_textColor, cell.m_font, left + 2, top + grid.m_rowHeight / 2, left + 2 + column.m_width, top + grid.m_rowHeight / 2)
 		else:
-			paint.drawText(cell.m_value, cell.m_textColor, cell.m_font, left + 2, top + grid.m_rowHeight / 2 - tSize.cy / 2)
+			paint.drawText(str(cell.m_value), cell.m_textColor, cell.m_font, left + 2, top + grid.m_rowHeight / 2 - tSize.cy / 2)
 
 #获取内容的宽度 
 #grid:表格
@@ -1937,7 +1937,7 @@ def drawTreeNode(tree, row, column, node, paint, left, top, right, bottom):
 	if (node.m_backColor != "none"):
 		paint.fillRect(node.m_backColor, left, top, right, bottom)
 	if (node.m_value != None):
-		tSize = paint.textSize(node.m_value, node.m_font)
+		tSize = paint.textSize(str(node.m_value), node.m_font)
 		tLeft = left + 2 + getTotalIndent(node)
 		wLeft = tLeft;
 		cR = tree.m_checkBoxWidth / 3
@@ -1961,9 +1961,9 @@ def drawTreeNode(tree, row, column, node, paint, left, top, right, bottom):
 			paint.fillPolygon(node.m_textColor, drawPoints)
 			wLeft += tree.m_collapsedWidth
 		if (tSize.cx > column.m_width):
-			paint.drawTextAutoEllipsis(node.m_value, node.m_textColor, node.m_font, wLeft, top + tree.m_rowHeight / 2, wLeft + column.m_width, top + tree.m_rowHeight / 2)
+			paint.drawTextAutoEllipsis(str(node.m_value), node.m_textColor, node.m_font, wLeft, top + tree.m_rowHeight / 2, wLeft + column.m_width, top + tree.m_rowHeight / 2)
 		else:
-			paint.drawText(node.m_value, node.m_textColor, node.m_font, wLeft, top + tree.m_rowHeight / 2 - tSize.cy / 2)
+			paint.drawText(str(node.m_value), node.m_textColor, node.m_font, wLeft, top + tree.m_rowHeight / 2 - tSize.cy / 2)
 
 #更新行的索引
 #tree:树
