@@ -1830,7 +1830,7 @@ def mouseUpGrid(grid, firstTouch, secondTouch, firstPoint, secondPoint):
 			if (cTop > grid.m_size.cy):
 				break;
 			cTop += grid.m_rowHeight
-	if (grid.m_headerHeight > 0):
+	if (grid.m_headerHeight > 0 and firstPoint.y <= grid.m_headerHeight):
 		for gridColumn in grid.m_columns:
 			if (gridColumn.m_visible):
 				if (gridColumn.m_frozen):
