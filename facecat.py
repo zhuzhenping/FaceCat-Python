@@ -402,7 +402,7 @@ class FCRadioButton(FCView):
 		self.m_visible = TRUE #是否可见
 		self.m_type = "radiobutton" #类型
 		self.m_buttonSize = FCSize(16,16) #按钮的大小
-		self.m_checked = TRUE #是否选中
+		self.m_checked = FALSE #是否选中
 		self.m_groupName = "" #组别
 	pass
 

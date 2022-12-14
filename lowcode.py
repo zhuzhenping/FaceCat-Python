@@ -240,7 +240,7 @@ def readXmlNode(paint, node, parent):
 									gridColumn.m_backColor = "rgb(230,230,230)"
 									gridColumn.m_borderColor = "rgb(150,150,150)"
 									gridColumn.m_textColor = "rgb(0,0,0)"
-			elif(typeStr == "text"):
+			elif(view.m_type == "textbox"):
 				view.m_hWnd = win32gui.CreateWindowEx(0, "Edit", view.m_name, WS_VISIBLE|WS_CHILD|SS_CENTERIMAGE, 0, 0, 100, 30, paint.m_hWnd, 0, 0, None)
 				win32gui.ShowWindow(view.m_hWnd, SW_HIDE)
 				s = win32gui.GetWindowLong(view.m_hWnd, GWL_EXSTYLE)
