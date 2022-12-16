@@ -113,22 +113,23 @@ class FCPaint(object):
 	#x2:横坐标2 
 	#y2:纵坐标2
 	def drawPolyline(self, color, width, style, apt):
-		wd = min(self.m_scaleFactorX, self.m_scaleFactorY) * width
-		if(wd < 1):
-			wd = 1
-		hPen = win32gui.CreatePen(PS_SOLID, int(wd), toColor(color)) 
-		hOldPen = win32gui.SelectObject(self.m_innerHDC, hPen)
-		for i in range(0,len(apt)):
-			x,y = apt[i]
-			x = x + self.m_offsetX
-			y = y + self.m_offsetY
-			if (self.m_scaleFactorX != 1 or self.m_scaleFactorY != 1):
-				x = m_scaleFactorX * x;
-				y = m_scaleFactorY * y;
-			apt[i] = (int(x), int(y))
-		win32gui.Polyline(self.m_innerHDC, apt)
-		win32gui.SelectObject(self.m_innerHDC, hOldPen)
-		win32gui.DeleteObject(hPen)
+		if(len(apt) > 1):
+			wd = min(self.m_scaleFactorX, self.m_scaleFactorY) * width
+			if(wd < 1):
+				wd = 1
+			hPen = win32gui.CreatePen(PS_SOLID, int(wd), toColor(color)) 
+			hOldPen = win32gui.SelectObject(self.m_innerHDC, hPen)
+			for i in range(0,len(apt)):
+				x,y = apt[i]
+				x = x + self.m_offsetX
+				y = y + self.m_offsetY
+				if (self.m_scaleFactorX != 1 or self.m_scaleFactorY != 1):
+					x = m_scaleFactorX * x;
+					y = m_scaleFactorY * y;
+				apt[i] = (int(x), int(y))
+			win32gui.Polyline(self.m_innerHDC, apt)
+			win32gui.SelectObject(self.m_innerHDC, hOldPen)
+			win32gui.DeleteObject(hPen)
 	#绘制多边形
 	#color:颜色 
 	#width:宽度 
@@ -138,27 +139,28 @@ class FCPaint(object):
 	#x2:横坐标2 
 	#y2:纵坐标2
 	def drawPolygon(self, color, width, style, apt):
-		wd = min(self.m_scaleFactorX, self.m_scaleFactorY) * width
-		if(wd < 1):
-			wd = 1
-		hPen = win32gui.CreatePen(PS_SOLID, int(wd), toColor(color)) 
-		hOldPen = win32gui.SelectObject(self.m_innerHDC, hPen)
-		for i in range(0,len(apt)):
-			x,y = apt[i]
-			x = x + self.m_offsetX
-			y = y + self.m_offsetY
-			if (self.m_scaleFactorX != 1 or self.m_scaleFactorY != 1):
-				x = m_scaleFactorX * x;
-				y = m_scaleFactorY * y;
-			if(i == 0):
-				win32gui.MoveToEx(self.m_innerHDC, int(x), int(y))
-			else:
-				win32gui.LineTo(self.m_innerHDC, int(x), int(y))
-			if(i == len(apt) - 1):
-				fx,fy = apt[0]
-				win32gui.LineTo(self.m_innerHDC, int(fx), int(fy))
-		win32gui.SelectObject(self.m_innerHDC, hOldPen)
-		win32gui.DeleteObject(hPen)
+		if(len(apt) > 1):
+			wd = min(self.m_scaleFactorX, self.m_scaleFactorY) * width
+			if(wd < 1):
+				wd = 1
+			hPen = win32gui.CreatePen(PS_SOLID, int(wd), toColor(color)) 
+			hOldPen = win32gui.SelectObject(self.m_innerHDC, hPen)
+			for i in range(0,len(apt)):
+				x,y = apt[i]
+				x = x + self.m_offsetX
+				y = y + self.m_offsetY
+				if (self.m_scaleFactorX != 1 or self.m_scaleFactorY != 1):
+					x = m_scaleFactorX * x;
+					y = m_scaleFactorY * y;
+				if(i == 0):
+					win32gui.MoveToEx(self.m_innerHDC, int(x), int(y))
+				else:
+					win32gui.LineTo(self.m_innerHDC, int(x), int(y))
+				if(i == len(apt) - 1):
+					fx,fy = apt[0]
+					win32gui.LineTo(self.m_innerHDC, int(fx), int(fy))
+			win32gui.SelectObject(self.m_innerHDC, hOldPen)
+			win32gui.DeleteObject(hPen)
 	#绘制矩形 
 	#color:颜色 
 	#width:宽度 
@@ -252,18 +254,19 @@ class FCPaint(object):
 	#right:右侧坐标 
 	#bottom:下方坐标
 	def fillPolygon(self, color, apt):
-		brush = win32gui.CreateSolidBrush(toColor(color))
-		win32gui.SelectObject(self.m_innerHDC, brush)
-		for i in range(0,len(apt)):
-			x,y = apt[i]
-			x = x + self.m_offsetX
-			y = y + self.m_offsetY
-			if (self.m_scaleFactorX != 1 or self.m_scaleFactorY != 1):
-				x = m_scaleFactorX * x;
-				y = m_scaleFactorY * y;
-			apt[i] = (int(x), int(y))
-		win32gui.Polygon(self.m_innerHDC, apt)
-		win32gui.DeleteObject(brush)
+		if(len(apt) > 1):
+			brush = win32gui.CreateSolidBrush(toColor(color))
+			win32gui.SelectObject(self.m_innerHDC, brush)
+			for i in range(0,len(apt)):
+				x,y = apt[i]
+				x = x + self.m_offsetX
+				y = y + self.m_offsetY
+				if (self.m_scaleFactorX != 1 or self.m_scaleFactorY != 1):
+					x = m_scaleFactorX * x;
+					y = m_scaleFactorY * y;
+				apt[i] = (int(x), int(y))
+			win32gui.Polygon(self.m_innerHDC, apt)
+			win32gui.DeleteObject(brush)
 	#填充椭圆 
 	#color:颜色
 	#left:左侧坐标 
