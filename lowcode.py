@@ -143,8 +143,10 @@ def readXmlNode(paint, node, parent):
 				typeStr = child.attrib["type"]
 			if(typeStr == "radio"):
 				view = FCRadioButton()
+				view.m_backColor = "none"
 			elif(typeStr == "checkbox"):
 				view = FCCheckBox()
+				view.m_backColor = "none"
 			elif(typeStr == "button"):
 				view = FCView()
 				view.m_type = "button"
