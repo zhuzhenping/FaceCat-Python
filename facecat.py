@@ -4882,10 +4882,13 @@ def drawChartScale(chart, paint, clipRect):
 	candleDivHeight = getCandleDivHeight(chart)
 	volDivHeight = getVolDivHeight(chart)
 	indDivHeight = getIndDivHeight(chart)
+	indDivHeight2 = getIndDivHeight2(chart)
 	if(volDivHeight > 0):
 		paint.drawLine(chart.m_scaleColor, m_lineWidth_Chart, 0, chart.m_leftVScaleWidth, candleDivHeight, chart.m_size.cx - chart.m_rightVScaleWidth, candleDivHeight)
 	if(indDivHeight > 0):
 		paint.drawLine(chart.m_scaleColor, m_lineWidth_Chart, 0, chart.m_leftVScaleWidth, candleDivHeight + volDivHeight, chart.m_size.cx - chart.m_rightVScaleWidth, candleDivHeight + volDivHeight)
+	if(indDivHeight2 > 0):
+		paint.drawLine(chart.m_scaleColor, m_lineWidth_Chart, 0, chart.m_leftVScaleWidth, candleDivHeight + volDivHeight + indDivHeight, chart.m_size.cx - chart.m_rightVScaleWidth, candleDivHeight + volDivHeight + indDivHeight)
 	if(chart.m_data != None and len(chart.m_data) > 0):
 		ret = chartGridScale(chart.m_candleMin, chart.m_candleMax,  (candleDivHeight - chart.m_candlePaddingTop - chart.m_candlePaddingBottom) / 2, chart.m_vScaleDistance, chart.m_vScaleDistance / 2, int((candleDivHeight - chart.m_candlePaddingTop - chart.m_candlePaddingBottom) / chart.m_vScaleDistance))
 		if(m_gridStep_Chart > 0 and ret > 0):
