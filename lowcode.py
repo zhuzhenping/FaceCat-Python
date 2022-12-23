@@ -115,7 +115,7 @@ def readXmlNode(paint, node, parent):
 		view = None
 		typeStr = ""
 		nodeName = child.tag.replace("{facecat}", "").lower()
-		if(nodeName == "div"):
+		if(nodeName == "div" or nodeName == "view"):
 			if "type" in child.attrib:
 				typeStr = child.attrib["type"]
 			if(typeStr == "splitlayout"):
@@ -138,7 +138,7 @@ def readXmlNode(paint, node, parent):
 		elif(nodeName == "select"):
 			view = FCView()
 			view.m_type = "textbox"
-		elif(nodeName == "input"):
+		elif(nodeName == "input" or nodeName == "text"):
 			if "type" in child.attrib:
 				typeStr = child.attrib["type"]
 			if(typeStr == "radio"):
