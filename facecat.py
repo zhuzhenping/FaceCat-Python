@@ -73,6 +73,9 @@ class FCPaint(object):
 		self.m_innerHDC = None #内部HDC
 		self.m_innerBM = None #内部BM
 		self.m_clipRect = None #裁剪区域
+		self.m_hFont = None #字体
+		self.m_hOldFont = None #旧的字体
+
 	#开始绘图 
 	#rect:区域
 	def beginPaint(self, rect):
@@ -314,10 +317,25 @@ class FCPaint(object):
 		self.m_offsetY = 0
 		self.m_innerBM = win32gui.CreateCompatibleBitmap(self.m_drawHDC, int(rect.right - rect.left),  int(rect.bottom - rect.top))
 		win32gui.SelectObject(self.m_innerHDC, self.m_innerBM)
+		lf = win32gui.LOGFONT()
+		lf.lfFaceName = "Arial"
+		lf.lfHeight = int(round(16))
+		lf.lfWeight = 700
+		self.m_hFont = win32gui.CreateFontIndirect(lf)
+		self.m_hOldFont = win32gui.SelectObject(self.m_innerHDC, self.m_hFont);
+		win32gui.SelectObject(self.m_innerHDC, self.m_hFont)
+
 	#结束裁剪
 	#rect:区域
 	#clipRect:裁剪区域
-	def endClip(self, rect, clipRect):		
+	def endClip(self, rect, clipRect):	
+		if(self.m_hOldFont != None):
+			win32gui.SelectObject(self.m_innerHDC, self.m_hOldFont);
+			self.m_hOldFont = None
+		if(self.m_hFont != None):
+			win32gui.DeleteObject(self.m_hFont);
+			self.m_hFont = None
+
 		win32gui.StretchBlt(self.m_drawHDC, int(clipRect.left), int(clipRect.top), int(clipRect.right - clipRect.left), int(clipRect.bottom - clipRect.top), self.m_innerHDC, int(clipRect.left - rect.left), int(clipRect.top - rect.top), int(clipRect.right - clipRect.left), int(clipRect.bottom - clipRect.top), 13369376)
 		if(self.m_innerHDC != None):
 			win32gui.DeleteObject(self.m_innerHDC)
