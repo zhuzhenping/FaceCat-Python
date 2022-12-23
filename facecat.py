@@ -318,9 +318,9 @@ class FCPaint(object):
 		self.m_innerBM = win32gui.CreateCompatibleBitmap(self.m_drawHDC, int(rect.right - rect.left),  int(rect.bottom - rect.top))
 		win32gui.SelectObject(self.m_innerHDC, self.m_innerBM)
 		lf = win32gui.LOGFONT()
-		lf.lfFaceName = "Arial"
-		lf.lfHeight = int(round(16))
-		lf.lfWeight = 700
+		lf.lfFaceName = "Segoe UI"
+		lf.lfHeight = int(round(20))
+		#lf.lfWeight = 700
 		self.m_hFont = win32gui.CreateFontIndirect(lf)
 		self.m_hOldFont = win32gui.SelectObject(self.m_innerHDC, self.m_hFont);
 		win32gui.SelectObject(self.m_innerHDC, self.m_hFont)
