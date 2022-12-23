@@ -399,6 +399,8 @@ m_mouseMoveCallBack = None #鼠标移动的回调
 m_mouseUpCallBack = None #鼠标抬起的回调
 m_mouseWheelCallBack = None #鼠标滚动的回调
 m_clickCallBack = None #点击的回调
+m_mouseEnterCallBack = None #鼠标进入的回调
+m_mouseLeaveCallBack = None #鼠标离开的回调
 
 m_dragBeginPoint = FCPoint(0, 0) #拖动开始时的触摸位置
 m_dragBeginRect = FCRect(0, 0, 0, 0) #拖动开始时的区域
@@ -5629,7 +5631,14 @@ def onMouseMove(mp, buttons, clicks, delta, paint):
 		view = findView(mp, topViews)
 		cmpPoint = FCPoint(mp.x - clientX(view), mp.y - clientY(view))
 		if(view != None):
+			oldMouseMoveView = m_mouseMoveView
 			m_mouseMoveView = view
+			if(oldMouseMoveView != None and oldMouseMoveView != view):
+				if(m_mouseLeaveCallBack != None):
+					m_mouseLeaveCallBack(oldMouseMoveView, cmpPoint, 0, 0, 0)
+			if(oldMouseMoveView == None or oldMouseMoveView != view):
+				if(m_mouseEnterCallBack != None):
+					m_mouseEnterCallBack(view, cmpPoint, 0, 0, 0)				
 			if(m_mouseMoveCallBack != None):
 				m_mouseMoveCallBack(view, cmpPoint, 0, 0, 0)
 
