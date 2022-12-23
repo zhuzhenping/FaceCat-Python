@@ -126,6 +126,18 @@ def readXmlNode(paint, node, parent):
 				view = FCTabView()
 			elif(typeStr == "tabpage"):
 				view = FCTabPage()
+			elif(typeStr == "radio"):
+				view = FCRadioButton()
+				view.m_backColor = "none"
+			elif(typeStr == "checkbox"):
+				view = FCCheckBox()
+				view.m_backColor = "none"
+			elif(typeStr == "button"):
+				view = FCView()
+				view.m_type = "button"
+			elif(typeStr == "text" or typeStr == "range" or typeStr == "datetime"):
+				view = FCView()
+				view.m_type = "textbox"
 			else:
 				view = FCView()
 				view.m_type = "div"
@@ -138,7 +150,7 @@ def readXmlNode(paint, node, parent):
 		elif(nodeName == "select"):
 			view = FCView()
 			view.m_type = "textbox"
-		elif(nodeName == "input" or nodeName == "text"):
+		elif(nodeName == "input" ):
 			if "type" in child.attrib:
 				typeStr = child.attrib["type"]
 			if(typeStr == "radio"):
