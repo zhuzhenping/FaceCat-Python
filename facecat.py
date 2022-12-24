@@ -319,7 +319,7 @@ class FCPaint(object):
 		win32gui.SelectObject(self.m_innerHDC, self.m_innerBM)
 		lf = win32gui.LOGFONT()
 		lf.lfFaceName = "Segoe UI"
-		lf.lfHeight = int(round(20))
+		lf.lfHeight = int(round(19))
 		#lf.lfWeight = 700
 		self.m_hFont = win32gui.CreateFontIndirect(lf)
 		self.m_hOldFont = win32gui.SelectObject(self.m_innerHDC, self.m_hFont);
