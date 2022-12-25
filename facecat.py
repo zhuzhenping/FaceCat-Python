@@ -968,9 +968,17 @@ def clickRadioButton(radioButton, mp):
 #clipRect:裁剪区域
 def drawButton(button, paint, clipRect):
 	if(button == m_mouseDownView):
-		paint.fillRect(button.m_pushedColor, 0, 0, button.m_size.cx, button.m_size.cy)
+		if(button.m_pushedColor != "none"):
+			paint.fillRect(button.m_pushedColor, 0, 0, button.m_size.cx, button.m_size.cy)
+		else:
+			if(button.m_backColor != "none"):
+				paint.fillRect(button.m_backColor, 0, 0, button.m_size.cx, button.m_size.cy)
 	elif(button == m_mouseMoveView):
-		paint.fillRect(button.m_hoveredColor, 0, 0, button.m_size.cx, button.m_size.cy)
+		if(button.m_hoveredColor != "none"):
+			paint.fillRect(button.m_hoveredColor, 0, 0, button.m_size.cx, button.m_size.cy)
+		else:
+			if(button.m_backColor != "none"):
+				paint.fillRect(button.m_backColor, 0, 0, button.m_size.cx, button.m_size.cy)
 	elif(button.m_backColor != "none"):
 		paint.fillRect(button.m_backColor, 0, 0, button.m_size.cx, button.m_size.cy)
 	if(button.m_textColor != "none" and len(button.m_text) > 0):
