@@ -5236,6 +5236,7 @@ def drawChartCrossLine(chart, paint, clipRect):
 def drawChartStock(chart, paint, clipRect):
 	if (chart.m_data != None and len(chart.m_data) > 0):
 		candleHeight = getCandleDivHeight(chart)
+		volHeight = getVolDivHeight(chart)
 		indHeight = getIndDivHeight(chart)
 		isTrend = FALSE
 		if(chart.m_cycle == "trend"):
@@ -5263,16 +5264,20 @@ def drawChartStock(chart, paint, clipRect):
 			close = chart.m_data[i].m_close
 			high = chart.m_data[i].m_high
 			low = chart.m_data[i].m_low
-			volume = chart.m_data[i].m_volume
 			openY = getChartY(chart, 0, openValue)
 			closeY = getChartY(chart, 0, close)
 			highY = getChartY(chart, 0, high)
 			lowY = getChartY(chart, 0, low)
-			volY = getChartY(chart, 1, volume)
-			zeroY = getChartY(chart, 1, 0)
+			volY = 0
+			zeroY = 0
+			if(volHeight > 0):
+				volume = chart.m_data[i].m_volume
+				volY = getChartY(chart, 1, volume)
+				zeroY = getChartY(chart, 1, 0) 
 			if (close >= openValue):
 				if (isTrend):
-					paint.drawLine(m_indicatorColors[6], m_lineWidth_Chart, 0, x, volY, x, zeroY)
+					if(volHeight > 0):
+						paint.drawLine(m_indicatorColors[6], m_lineWidth_Chart, 0, x, volY, x, zeroY)
 				else:
 					paint.drawLine(chart.m_upColor, m_lineWidth_Chart, 0, x, highY, x, lowY)
 					if (cWidth > 0):
@@ -5280,19 +5285,24 @@ def drawChartStock(chart, paint, clipRect):
 							paint.drawLine(chart.m_upColor, m_lineWidth_Chart, 0, x - cWidth, closeY, x + cWidth, closeY)
 						else:
 							paint.fillRect(chart.m_upColor, x - cWidth, closeY, x + cWidth, openY)
-						paint.fillRect(chart.m_upColor, x - cWidth, volY, x + cWidth, zeroY)
+						if(volHeight > 0):
+							paint.fillRect(chart.m_upColor, x - cWidth, volY, x + cWidth, zeroY)
 					else:
-						paint.drawLine(chart.m_upColor, m_lineWidth_Chart, 0, x - cWidth, volY, x + cWidth, zeroY)
+						if(volHeight > 0):
+							paint.drawLine(chart.m_upColor, m_lineWidth_Chart, 0, x - cWidth, volY, x + cWidth, zeroY)
 			else:
 				if (isTrend):
-					paint.drawLine(m_indicatorColors[6], m_lineWidth_Chart, 0, x, volY, x, zeroY)
+					if(volHeight > 0):
+						paint.drawLine(m_indicatorColors[6], m_lineWidth_Chart, 0, x, volY, x, zeroY)
 				else:
 					paint.drawLine(chart.m_downColor, m_lineWidth_Chart, 0, x, highY, x, lowY)
 					if (cWidth > 0):
 						paint.fillRect(chart.m_downColor, x - cWidth, openY, x + cWidth, closeY)
-						paint.fillRect(chart.m_downColor, x - cWidth, volY, x + cWidth, zeroY)
+						if(volHeight > 0):
+							paint.fillRect(chart.m_downColor, x - cWidth, volY, x + cWidth, zeroY)
 					else:
-						paint.drawLine(chart.m_downColor, m_lineWidth_Chart, 0, x - cWidth, volY, x + cWidth, zeroY)
+						if(volHeight > 0):
+							paint.drawLine(chart.m_downColor, m_lineWidth_Chart, 0, x - cWidth, volY, x + cWidth, zeroY)
 			if (chart.m_selectShape == "CANDLE"):
 				kPInterval = int(maxVisibleRecord / 30)
 				if (kPInterval < 2):
