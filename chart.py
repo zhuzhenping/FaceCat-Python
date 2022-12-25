@@ -350,32 +350,25 @@ hwnd = win32gui.CreateWindow(reg,'facecat-py',WS_OVERLAPPEDWINDOW | WS_CLIPCHILD
 m_paint.m_hWnd = hwnd
 m_split = FCSplitLayoutDiv()
 m_split.m_dock = "fill"
-m_split.m_paint = m_paint
 m_split.m_size = FCSize(400, 400)
-m_paint.m_views.append(m_split)
+addView(m_split, m_paint)
 m_chart = FCChart()
 m_chart.m_leftVScaleWidth = 80
 m_chart.m_textColor = "rgb(255,255,255)"
-m_chart.m_paint = m_paint
-m_chart.m_parent = m_split
+addViewToParent(m_chart, m_split)
 m_chart.m_mainIndicator = "MA" 
 m_chart.m_showIndicator = "MACD" 
-m_split.m_views.append(m_chart)
 m_layout = FCView()
-m_layout.m_paint = m_paint
 m_layout.m_type = "div"
-m_layout.m_parent = m_split
+addViewToParent(m_layout, m_split)
 m_layout.m_showHScrollBar = TRUE
 m_layout.m_showVScrollBar = TRUE
 m_layout.m_allowDragScroll = TRUE
 m_layout.m_scrollSize = 0
-m_split.m_views.append(m_layout)
 m_splitter = FCView()
 m_splitter.m_location = FCPoint(0, 340)
 m_splitter.m_size = FCSize(400, 1)
-m_splitter.m_paint = m_paint
-m_splitter.m_parent = m_split
-m_split.m_views.append(m_splitter)
+addViewToParent(m_splitter, m_split)
 m_split.m_firstView = m_layout
 m_split.m_secondView = m_chart
 m_split.m_splitter = m_splitter
@@ -410,10 +403,8 @@ for i in range(0, len(plots)):
 	subView.m_name = plots[i]
 	subView.m_location = FCPoint(i * 100 + 1, 1)
 	subView.m_size = FCSize(98, 28)
-	subView.m_paint = m_paint
-	subView.m_parent = m_layout
+	addViewToParent(subView, m_layout)
 	subView.m_allowDrag = TRUE
-	m_layout.m_views.append(subView)
 	if(subView.m_paint.m_defaultUIStyle == "dark"):
 		subView.m_backColor = "rgb(0,0,0)"
 		subView.m_borderColor = "rgb(100,100,100)"
@@ -442,9 +433,8 @@ for i in range(0, len(indicators)):
 	subView.m_name = indicators[i]
 	subView.m_location = FCPoint(i * 100 + 1, 30)
 	subView.m_size = FCSize(98, 28)
-	subView.m_paint = m_paint
+	addViewToParent(subView, m_layout)
 	subView.m_allowDrag = TRUE
-	subView.m_parent = m_layout
 	m_layout.m_views.append(subView)
 	if(subView.m_paint.m_defaultUIStyle == "dark"):
 		subView.m_backColor = "rgb(0,0,0)"

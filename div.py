@@ -296,7 +296,7 @@ m_div.m_type = "div"
 m_div.m_showHScrollBar = TRUE
 m_div.m_showVScrollBar = TRUE
 m_div.m_dock = "fill"
-m_paint.m_views.append(m_div)
+addView(m_div, m_paint)
 for i in range(0,10):
 	subDiv = FCView()
 	subDiv.m_type = "div"
@@ -305,8 +305,7 @@ for i in range(0,10):
 	subDiv.m_text = "按钮" + str(i)
 	subDiv.m_showHScrollBar = TRUE
 	subDiv.m_showVScrollBar = TRUE
-	subDiv.m_parent = m_div;
-	subDiv.m_paint = m_paint;
+	addViewToParent(subDiv, m_div)
 	if (m_div.m_paint.m_defaultUIStyle == "dark"):
 		subDiv.m_backColor = "rgb(0,0,0)"
 		subDiv.m_borderColor = "rgb(100,100,100)"
@@ -315,15 +314,13 @@ for i in range(0,10):
 		subDiv.m_backColor = "rgb(255,255,255)"
 		subDiv.m_borderColor = "rgb(150,150,150)"
 		subDiv.m_textColor = "rgb(0,0,0)"
-	m_div.m_views.append(subDiv)
 	for j in range(0,10):
 		sunDiv = FCView()
 		sunDiv.m_location = FCPoint(j * 20, j * 40)
 		sunDiv.m_size = FCSize(100, 20)
 		sunDiv.m_text = "按钮" + str(i) + "," + str(j)
 		sunDiv.m_visible = TRUE;
-		sunDiv.m_parent = subDiv;
-		sunDiv.m_paint = m_paint;
+		addViewToParent(sunDiv,subDiv)
 		sunDiv.m_allowDrag = TRUE;
 		if (m_div.m_paint.m_defaultUIStyle == "dark"):
 			sunDiv.m_backColor = "rgb(0,0,0)"
@@ -333,7 +330,6 @@ for i in range(0,10):
 			sunDiv.m_backColor = "rgb(255,255,255)"
 			sunDiv.m_borderColor = "rgb(150,150,150)"
 			sunDiv.m_textColor = "rgb(0,0,0)"
-		subDiv.m_views.append(sunDiv)
 
 rect = win32gui.GetClientRect(hwnd)
 m_paint.m_size = FCSize(rect[2] - rect[0], rect[3] - rect[1])

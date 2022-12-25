@@ -283,8 +283,7 @@ m_paint.m_hWnd = hwnd
 
 m_split = FCSplitLayoutDiv()
 m_split.m_size = FCSize(400, 400)
-
-m_split.m_paint = m_paint
+addView(m_split, m_paint)
 if (m_split.m_paint.m_defaultUIStyle == "dark"):
 	m_split.m_backColor = "rgb(0,0,0)"
 	m_split.m_borderColor = "rgb(100,100,100)"
@@ -295,33 +294,26 @@ elif(m_split.m_paint.m_defaultUIStyle == "light"):
 	m_split.m_textColor = "rgb(0,0,0)"
 
 m_split.m_dock = "fill"    
-m_paint.m_views.append(m_split)
         
 m_splitter = FCView()
 if(m_split.m_paint.m_defaultUIStyle == "dark"):
 	m_splitter.m_backColor = "rgb(150,150,150)"
 elif(m_split.m_paint.m_defaultUIStyle == "light"):
 	m_splitter.m_backColor = "rgb(100,100,100)"
-        
-m_split.m_views.append(m_splitter)
+
+addViewToParent(m_splitter, m_split)
 m_split.m_splitter = m_splitter
 m_splitter.m_location = FCPoint(200, 0)
 m_splitter.m_size = FCSize(5, 0)
-m_splitter.m_paint = m_paint
-m_splitter.m_parent = m_split
         
 firstView = FCView()
 firstView.m_backColor = "rgb(255,0,0)"
-firstView.m_paint = m_paint
-firstView.m_parent = m_split
-m_split.m_views.append(firstView)
+addViewToParent(firstView, m_split)
 m_split.m_firstView = firstView
         
 secondView = FCView()
 secondView.m_backColor = "rgb(0,255,0)"
-secondView.m_paint = m_paint
-secondView.m_parent = m_split
-m_split.m_views.append(secondView)
+addViewToParent(secondView, m_split)
 m_split.m_secondView = secondView
 m_split.m_oldSize = FCSize(m_split.m_size.cx, m_split.m_size.cy)
 resetSplitLayoutDiv(m_split)

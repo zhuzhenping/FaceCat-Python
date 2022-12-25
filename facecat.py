@@ -737,6 +737,39 @@ m_secondTouchIndexCache_Chart = -1
 m_secondTouchPointCache_Chart = FCPoint(0,0)
 m_mouseDownPoint_Chart = FCPoint(0,0)
 
+#添加顶层视图
+#view 视图
+#paint 绘图对象
+def addView(view, paint):
+	view.m_paint = paint
+	paint.m_views.append(view)
+
+#添加到父视图
+#view 视图
+#parent 父视图
+def addViewToParent(view, parent):
+	view.m_parent = parent
+	view.m_paint = parent.m_paint
+	parent.m_views.append(view)
+
+#移除顶层视图
+#view 视图
+#paint 绘图对象
+def removeView(view, paint):
+	for i in range(0, len(paint.m_views)):
+		if(paint.m_views[i] == view):
+			paint.m_views.remove(view)
+			break
+
+#从父视图中移除
+#view 视图
+#parent 父视图
+def removeViewFromParent(view, parent):
+	for i in range(0, len(parent.m_views)):
+		if(parent.m_views[i] == view):
+			parent.m_views.remove(view)
+			break
+
 #获取绝对位置X 
 #view:视图
 def clientX(view):

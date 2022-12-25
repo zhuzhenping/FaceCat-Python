@@ -310,7 +310,7 @@ def createTreeNode(tree):
 	return treeNode
 
 m_tree = FCTree()
-m_tree.m_paint = m_paint;
+addView(m_tree, m_paint)
 if (m_tree.m_paint.m_defaultUIStyle == "dark"):
     m_tree.m_backColor = "rgb(0,0,0)"
     m_tree.m_borderColor = "rgb(255,255,255)"
@@ -322,7 +322,6 @@ elif (m_tree.m_paint.m_defaultUIStyle == "light"):
 m_tree.m_dock = "fill"
 m_tree.m_headerHeight = 0
 m_tree.m_showCheckBox = TRUE
-m_paint.m_views.append(m_tree)
 
 column = createTreeColumn(m_tree)
 column.m_width = 500

@@ -282,7 +282,7 @@ hwnd = win32gui.CreateWindow(reg,'facecat-py',WS_OVERLAPPEDWINDOW | WS_CLIPCHILD
 m_paint.m_hWnd = hwnd
 
 m_layout = FCLayoutDiv()
-m_layout.m_paint = m_paint
+addView(m_layout, m_paint)
 m_layout.m_showHScrollBar = TRUE
 m_layout.m_showVScrollBar = TRUE
 if (m_layout.m_paint.m_defaultUIStyle == "dark"):
@@ -296,10 +296,9 @@ elif (m_layout.m_paint.m_defaultUIStyle == "light"):
 m_layout.m_dock = "fill"       
 m_layout.m_padding = FCPadding(10, 10, 10, 10)
 m_layout.m_autoWrap = TRUE;
-m_paint.m_views.append(m_layout)
 for i in range(0,100):
 	button = FCView()
-	button.m_paint = m_paint
+	addViewToParent(button, m_layout)
 	button.m_text = str(i + 1)
 	if (m_layout.m_paint.m_defaultUIStyle == "dark"):
 		button.m_backColor = "rgb(0,0,0)"
@@ -312,8 +311,6 @@ for i in range(0,100):
 	button.m_size = FCSize(100, 100)
 	button.m_location = FCPoint(0, 0)
 	button.m_margin = FCPadding(10, 10, 10, 10)
-	button.m_parent = m_layout
-	m_layout.m_views.append(button)
 resetLayoutDiv(m_layout);
 
 rect = win32gui.GetClientRect(hwnd)

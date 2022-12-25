@@ -310,7 +310,7 @@ def createGridCell(grid):
 	return gridCell
 
 m_grid = FCGrid()
-m_grid.m_paint = m_paint
+addView(m_grid, m_paint)
 if (m_grid.m_paint.m_defaultUIStyle == "dark"):
 	m_grid.m_backColor = "rgb(0,0,0)"
 	m_grid.m_borderColor = "rgb(100,100,100)"
@@ -321,7 +321,6 @@ elif(m_grid.m_paint.m_defaultUIStyle == "light"):
 	m_grid.m_textColor = "rgb(0,0,0)"
         
 m_grid.m_dock = "fill"
-m_paint.m_views.append(m_grid)
 
 column1 = createGridColumn(m_grid)
 column1.m_text = "id"

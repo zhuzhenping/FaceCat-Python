@@ -282,7 +282,7 @@ hwnd = win32gui.CreateWindow(reg,'facecat-py',WS_OVERLAPPEDWINDOW | WS_CLIPCHILD
 m_paint.m_hWnd = hwnd
 
 m_tabView = FCTabView()
-m_tabView.m_paint = m_paint;
+addView(m_tabView, m_paint)
 if (m_tabView.m_paint.m_defaultUIStyle == "dark"):
 	m_tabView.m_backColor = "rgb(0,0,0)"
 	m_tabView.m_borderColor = "rgb(100,100,100)"
@@ -295,7 +295,6 @@ m_tabView.m_dock = "fill"
 m_tabView.m_borderColor =  "none"
 m_tabView.m_underLineColor = "rgb(255,215,0)"
 m_tabView.m_layout = "bottom"
-m_paint.m_views.append(m_tabView)
 
 for i in range(0,4):
 	tabPage = FCTabPage()
