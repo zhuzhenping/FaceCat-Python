@@ -1501,7 +1501,7 @@ def mouseWheelGrid(grid, delta):
 	elif (delta < 0):
 		oldScrollV += grid.m_rowHeight
 	contentHeight = getGridContentHeight(grid)
-	if (contentHeight < grid.m_size.cy):
+	if (contentHeight < grid.m_size.cy - grid.m_headerHeight - grid.m_scrollSize):
 		grid.m_scrollV = 0
 	else:
 		if (oldScrollV < 0):
@@ -1698,7 +1698,7 @@ def drawGrid(grid, paint, clipRect):
 def drawGridScrollBar(grid, paint, clipRect):
 	if (grid.m_showHScrollBar):
 		contentWidth = getGridContentWidth(grid)
-		if (contentWidth > grid.m_size.cx):
+		if (contentWidth > grid.m_size.cx - grid.m_scrollSize):
 			sLeft = grid.m_scrollH / contentWidth * grid.m_size.cx
 			sRight = (grid.m_scrollH + grid.m_size.cx) / contentWidth * grid.m_size.cx
 			if (sRight - sLeft < grid.m_scrollSize):
@@ -1706,7 +1706,7 @@ def drawGridScrollBar(grid, paint, clipRect):
 			paint.fillRect(grid.m_scrollBarColor, sLeft, grid.m_size.cy - grid.m_scrollSize, sRight, grid.m_size.cy)
 	if(grid.m_showVScrollBar):
 		contentHeight = getGridContentHeight(grid)
-		if (contentHeight > grid.m_size.cy):
+		if (contentHeight > grid.m_size.cy - grid.m_headerHeight - grid.m_scrollSize):
 			sTop = grid.m_headerHeight + grid.m_scrollV / contentHeight * (grid.m_size.cy - grid.m_headerHeight - grid.m_scrollSize)
 			sBottom = sTop + ((grid.m_size.cy - grid.m_headerHeight - grid.m_scrollSize)) / contentHeight * (grid.m_size.cy - grid.m_headerHeight - grid.m_scrollSize)
 			if (sBottom - sTop < grid.m_scrollSize):
@@ -1747,7 +1747,7 @@ def mouseMoveGrid(grid, firstTouch, secondTouch, firstPoint, secondPoint):
 				return
 		if (grid.m_allowDragScroll):
 			contentWidth = getGridContentWidth(grid)
-			if (contentWidth > grid.m_size.cx):
+			if (contentWidth > grid.m_size.cx - grid.m_scrollSize):
 				subX = grid.m_startPoint.x - mp.x
 				newScrollH = grid.m_startScrollH + subX
 				if (newScrollH < 0):
@@ -1758,7 +1758,7 @@ def mouseMoveGrid(grid, firstTouch, secondTouch, firstPoint, secondPoint):
 				if(abs(subX) > 5):
 				    m_cancelClick = TRUE
 			contentHeight = getGridContentHeight(grid)
-			if (contentHeight > grid.m_size.cy):
+			if (contentHeight > grid.m_size.cy - grid.m_headerHeight - grid.m_scrollSize):
 				subY = grid.m_startPoint.y - mp.y
 				newScrollV = grid.m_startScrollV + subY
 				if (newScrollV < 0):
@@ -1782,7 +1782,7 @@ def mouseDownGrid(grid, firstTouch, secondTouch, firstPoint, secondPoint):
 	grid.m_downScrollVButton = FALSE
 	if (grid.m_showHScrollBar):
 		contentWidth = getGridContentWidth(grid)
-		if (contentWidth > grid.m_size.cx):
+		if (contentWidth > grid.m_size.cx - grid.m_scrollSize):
 			sLeft = grid.m_scrollH / contentWidth * grid.m_size.cx
 			sRight = (grid.m_scrollH + grid.m_size.cx) / contentWidth * grid.m_size.cx
 			if (sRight - sLeft < grid.m_scrollSize):
@@ -1793,7 +1793,7 @@ def mouseDownGrid(grid, firstTouch, secondTouch, firstPoint, secondPoint):
 				return
 	if(grid.m_showVScrollBar):
 		contentHeight = getGridContentHeight(grid)
-		if (contentHeight > grid.m_size.cy):
+		if (contentHeight > grid.m_size.cy - grid.m_headerHeight - grid.m_scrollSize):
 			sTop = grid.m_headerHeight + grid.m_scrollV / contentHeight * (grid.m_size.cy - grid.m_headerHeight - grid.m_scrollSize)
 			sBottom = (grid.m_scrollV + (grid.m_size.cy - grid.m_headerHeight - grid.m_scrollSize)) / contentHeight * (grid.m_size.cy - grid.m_headerHeight - grid.m_scrollSize)
 			if (sBottom - sTop < grid.m_scrollSize):
