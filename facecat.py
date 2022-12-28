@@ -1698,7 +1698,7 @@ def drawGrid(grid, paint, clipRect):
 def drawGridScrollBar(grid, paint, clipRect):
 	if (grid.m_showHScrollBar):
 		contentWidth = getGridContentWidth(grid)
-		if (contentWidth > grid.m_size.cx - grid.m_scrollSize):
+		if (contentWidth > grid.m_size.cx):
 			sLeft = grid.m_scrollH / contentWidth * grid.m_size.cx
 			sRight = (grid.m_scrollH + grid.m_size.cx) / contentWidth * grid.m_size.cx
 			if (sRight - sLeft < grid.m_scrollSize):
@@ -1706,7 +1706,7 @@ def drawGridScrollBar(grid, paint, clipRect):
 			paint.fillRect(grid.m_scrollBarColor, sLeft, grid.m_size.cy - grid.m_scrollSize, sRight, grid.m_size.cy)
 	if(grid.m_showVScrollBar):
 		contentHeight = getGridContentHeight(grid)
-		if (contentHeight > grid.m_size.cy - grid.m_headerHeight - grid.m_scrollSize):
+		if (contentHeight > grid.m_size.cy - grid.m_headerHeight):
 			sTop = grid.m_headerHeight + grid.m_scrollV / contentHeight * (grid.m_size.cy - grid.m_headerHeight - grid.m_scrollSize)
 			sBottom = sTop + ((grid.m_size.cy - grid.m_headerHeight - grid.m_scrollSize)) / contentHeight * (grid.m_size.cy - grid.m_headerHeight - grid.m_scrollSize)
 			if (sBottom - sTop < grid.m_scrollSize):
