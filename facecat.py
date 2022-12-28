@@ -223,7 +223,7 @@ class FCPaint(object):
 	#x:横坐标 
 	#y:纵坐标
 	def drawText(self, text, color, font, x, y):
-		fontSize = int(font.split(" ")[0].replace("px", "")) + 7
+		fontSize = float(font.split(" ")[0].replace("px", "")) + 7
 		if(fontSize != self.m_textSize):
 			if(self.m_hOldFont != None):
 				win32gui.SelectObject(self.m_innerHDC, self.m_hOldFont);
@@ -306,7 +306,7 @@ class FCPaint(object):
 	#text:文字 
 	#font:字体
 	def textSize(self, text, font):
-		fontSize = int(font.split(" ")[0].replace("px", "")) + 7
+		fontSize = float(font.split(" ")[0].replace("px", "")) + 7
 		if(fontSize != self.m_textSize):
 			if(self.m_hOldFont != None):
 				win32gui.SelectObject(self.m_innerHDC, self.m_hOldFont);
@@ -330,7 +330,7 @@ class FCPaint(object):
 	#right:右侧坐标 
 	#bottom:方坐标
 	def drawTextAutoEllipsis(self, text, color, font, left, top, right, bottom):
-		fontSize = int(font.split(" ")[0].replace("px", "")) + 7
+		fontSize = float(font.split(" ")[0].replace("px", "")) + 7
 		if(fontSize != self.m_textSize):
 			if(self.m_hOldFont != None):
 				win32gui.SelectObject(self.m_innerHDC, self.m_hOldFont);

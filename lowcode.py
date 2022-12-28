@@ -278,44 +278,44 @@ def readXmlNode(paint, node, parent):
 #绘制视图
 #view:视图
 #paint:绘图对象
-#drawRect:区域
-def onViewPaint(view, paint, drawRect):
+#clipRect:区域
+def onViewPaint(view, paint, clipRect):
 	if(view.m_type == "radiobutton"):
-		drawRadioButton(view, paint, drawRect)
+		drawRadioButton(view, paint, clipRect)
 	elif(view.m_type == "checkbox"):
-		drawCheckBox(view, paint, drawRect)
+		drawCheckBox(view, paint, clipRect)
 	elif(view.m_type == "chart"):
 		resetChartVisibleRecord(view)
 		checkChartLastVisibleIndex(view)
 		calculateChartMaxMin(view)
-		drawChart(view, paint, drawRect)
+		drawChart(view, paint, clipRect)
 	elif(view.m_type == "grid"):
-		drawDiv(view, paint, drawRect)
-		drawGrid(view, paint, drawRect)
+		drawDiv(view, paint, clipRect)
+		drawGrid(view, paint, clipRect)
 	elif(view.m_type == "tree"):
-		drawDiv(view, paint, drawRect)
-		drawTree(view, paint, drawRect)
+		drawDiv(view, paint, clipRect)
+		drawTree(view, paint, clipRect)
 	elif(view.m_type == "label"):
 		if(view.m_textColor != "none"):
 			tSize = paint.textSize(view.m_text, view.m_font)
 			paint.drawText(view.m_text, view.m_textColor, view.m_font, 0, (view.m_size.cy - tSize.cy) / 2)
 	elif(view.m_type == "div" or view.m_type =="tabpage" or view.m_type =="tabview" or view.m_type =="layout"):
-		drawDiv(view, paint, drawRect)
+		drawDiv(view, paint, clipRect)
 	else:
-		drawButton(view, paint, drawRect)
+		drawButton(view, paint, clipRect)
 
 #绘制视图边线
 #view:视图
 #paint:绘图对象
-#drawRect:区域
-def onViewPaintBorder(view, paint, drawRect):
+#clipRect:区域
+def onViewPaintBorder(view, paint, clipRect):
 	if(view.m_type == "grid"):
-		drawGridScrollBar(view, paint, drawRect)
+		drawGridScrollBar(view, paint, clipRect)
 	elif(view.m_type == "tree"):
-		drawTreeScrollBar(view, paint, drawRect)
+		drawTreeScrollBar(view, paint, clipRect)
 	elif(view.m_type == "div" or view.m_type =="tabpage" or view.m_type =="tabview" or view.m_type =="layout"):
-		drawDivScrollBar(view, paint, drawRect)
-		drawDivBorder(view, paint, drawRect)
+		drawDivScrollBar(view, paint, clipRect)
+		drawDivBorder(view, paint, clipRect)
 
 #视图的鼠标移动方法
 #view 视图

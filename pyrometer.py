@@ -70,6 +70,52 @@ def onViewPaint(view, paint, clipRect):
 			paint.drawText(view.m_text, view.m_textColor, view.m_font, 0, (view.m_size.cy - tSize.cy) / 2)
 	elif(view.m_type == "div" or view.m_type =="tabpage" or view.m_type =="tabview" or view.m_type =="layout"):
 		drawDiv(view, paint, clipRect)
+	elif (view.m_type == "pyrometer"):
+		drawDiv(view, paint, clipRect)
+	elif (view.m_type == "pdata"):
+		backColor = "none"
+		borderColor = "none"
+		if (view.m_parent.m_paint.m_defaultUIStyle == "dark"):
+			if(view.m_data["price"] >= view.m_firstPrice):
+				backColor = "rgb(219,68,83)"
+			else:
+				backColor = "rgb(15,193,118)"
+			borderColor = "rgb(0,0,0)"
+		elif(view.m_parent.m_paint.m_defaultUIStyle == "light"):
+			if(view.m_data["price"] >= view.m_firstPrice):
+				backColor = "rgb(255,255,255)"
+			else:
+				backColor = "rgb(255,255,255)"
+			borderColor = "rgb(255,255,255)"
+		paint.fillRect(backColor, 0, 0, view.m_size.cx, view.m_size.cy)
+		paint.drawRect(borderColor, 1, 0, 0, 0, view.m_size.cx, view.m_size.cy)
+		fontSize1 = int(min(view.m_size.cx, view.m_size.cy) / 5)
+		if(fontSize1 > 1):
+			baseUpper = view.m_data["base"].upper()
+			font1 = str(fontSize1) + "px Arial"
+			tSize = paint.textSize(baseUpper, font1)
+			while(tSize.cx > view.m_size.cx - 10):
+				fontSize1 = fontSize1 - 1
+				if(fontSize1 < 1):
+					return
+				font1 = str(fontSize1) + "px Arial"
+				tSize = paint.textSize(baseUpper, font1)   
+			quoteUpper = view.m_data["quote"].upper()
+			font2 = str(fontSize1 / 2) + "px Arial"
+			tSize2 = paint.textSize(quoteUpper, font2)
+			if (view.m_parent.m_paint.m_defaultUIStyle == "dark"):
+				paint.drawText(baseUpper, "rgb(255,255,255)", font1, (view.m_size.cx - tSize.cx) / 2, view.m_size.cy / 2 - tSize.cy)
+				paint.drawText(quoteUpper, "rgb(255,255,255)", font2, (view.m_size.cx - tSize2.cx) / 2, view.m_size.cy / 2)
+			elif (view.m_parent.m_paint.m_defaultUIStyle == "light"):
+				paint.drawText(baseUpper, "rgb(0,0,0)", font1, (view.m_size.cx - tSize.cx) / 2, view.m_size.cy / 2 - tSize.cy)
+				paint.drawText(quoteUpper, "rgb(0,0,0)", font2, (view.m_size.cx - tSize2.cx) / 2, view.m_size.cy / 2)
+			strPrice = toFixed(view.m_data["price"], 6)
+			font3 = str(fontSize1 * 2 / 3) + "px Arial"
+			tSize5 = paint.textSize(strPrice, font3)
+			if (view.m_parent.m_paint.m_defaultUIStyle == "dark"):
+				paint.drawText(strPrice, "rgb(255,255,255)", font3, (view.m_size.cx - tSize5.cx) / 2, view.m_size.cy / 2 + tSize.cy)
+			elif(view.m_parent.m_paint.m_defaultUIStyle == "light"):
+				paint.drawText(strPrice, "rgb(0,0,0)", font3, (view.m_size.cx - tSize5.cx) / 2, view.m_size.cy / 2 + tSize.cy)
 	else:
 		drawButton(view, paint, clipRect)
 
@@ -221,77 +267,6 @@ def onViewMouseWheel(view, mp, buttons, clicks, delta):
 			zoomInChart(view);
 		invalidateView(view, view.m_paint)
 
-#绘制列 
-#grid:表格 
-#column:列
-#paint:绘图对象 
-#left:左侧坐标 
-#top:上方坐标 
-#right:右侧坐标 
-#bottom:下方坐标
-def onPaintGridColumn(grid, column, paint, left, top, right, bottom):
-	width = right - left
-	height = bottom - top
-	font2 = "14px Arial"
-	tSize = paint.textSize("市场 / 成交额", font2)
-	if (grid.m_paint.m_defaultUIStyle == "dark"):
-		paint.fillRect("rgb(0,0,0)", left, top, right, bottom)
-		paint.drawText("市场 / 成交额", "rgb(200,200,200)", font2, left + 5, top + height / 2 - tSize.cy / 2)
-		paint.drawText("最新价", "rgb(200,200,200)", font2, left + width * 0.4 + 5, top + height / 2 - tSize.cy / 2)
-		paint.drawText("24h涨跌", "rgb(200,200,200)", font2, left + width * 0.7 + 5, top + height / 2 - tSize.cy / 2)
-	elif (grid.m_paint.m_defaultUIStyle == "light"):
-		paint.fillRect("rgb(255,255,255)", left, top, right, bottom)
-		paint.drawText("市场 / 成交额", "rgb(50,50,50)", font2, left + 5, top + height / 2 - tSize.cy / 2)
-		paint.drawText("最新价", "rgb(50,50,50)", font2, left + width * 0.4 + 5, top + height / 2 - tSize.cy / 2)
-		paint.drawText("24h涨跌", "rgb(50,50,50)", font2, left + width * 0.7 + 5, top + height / 2 - tSize.cy / 2)
-
-#绘制单元格 
-#grid:表格 
-#row:行 
-#column:列 
-#cell:单元格
-#paint:绘图对象 
-#left:左侧坐标 
-#top:上方坐标 
-#right:右侧坐标 
-#bottom:下方坐标
-def onPaintGridCell(grid, row, column, cell, paint, left, top, right, bottom):
-	width = right - left
-	height = bottom - top
-	baseUpper = cell.m_data["base"].upper()
-	font1 = "16px Arial"
-	font2 = "14px Arial"
-	font3 = "12px Arial"
-	tSize = paint.textSize(baseUpper, font1)
-	quoteUpper = " / " + cell.m_data["quote"].upper()
-	strVolume = toFixed(cell.m_data["volume"], 6)
-	strPrice = toFixed(cell.m_data["price"], 6)
-	tSize2 = paint.textSize(strVolume, font3)
-	tSize3 = paint.textSize(strPrice, font2)
-	strPrice2 = "¥" + toFixed(cell.m_data["price"] * 7.24, 6)
-	diffRange = toFixed((cell.m_data["price"] - cell.m_firstPrice) / cell.m_data["price"] * 100, 2) + "%"
-	if (grid.m_paint.m_defaultUIStyle == "dark"):
-		paint.drawText(baseUpper, "rgb(255,255,255)", font1, left + 5, top + height / 2 - tSize2.cy)
-		paint.drawText(quoteUpper, "rgb(200,200,200)", font3, left + 5 + tSize.cx, top + height / 2 - tSize2.cy)
-		paint.drawText(strVolume, "rgb(200,200,200)", font3, left + 5, top + height / 2)
-	elif (grid.m_paint.m_defaultUIStyle == "light"):
-		paint.drawText(baseUpper, "rgb(0,0,0)", font1, left + 5, top + height / 2 - tSize2.cy)
-		paint.drawText(quoteUpper, "rgb(50,50,50)", font3, left + 5 + tSize.cx, top + height / 2 - tSize2.cy)
-		paint.drawText(strVolume, "rgb(50,50,50)", font3, left + 5, top + height / 2 )
-	tSize5 = paint.textSize("100000.00%", font1);
-	colRect = FCRect(left + width * 0.7 + 5, top + height / 2 - tSize5.cy / 2, left + width * 0.7 + 5 + tSize5.cx, top + height / 2 + tSize5.cy / 2)
-	color = "rgb(15,193,118)"
-	if(cell.m_data["price"] >= cell.m_firstPrice):
-		color = "rgb(219,68,83)"
-	paint.drawText(strPrice, color, font2, left + width * 0.4 + 5, top + height / 2 - tSize3.cy)
-	paint.drawText(strPrice2, color, font2, left + width * 0.4 + 5, top + height / 2)
-	paint.fillRect(color, colRect.left, colRect.top, colRect.right, colRect.bottom)
-	tSize4 = paint.textSize(diffRange, font1)
-	if (grid.m_paint.m_defaultUIStyle == "dark"):
-		paint.drawText(diffRange, "rgb(255,255,255)", font1, left + width * 0.7 + 5 + tSize5.cx / 2 - tSize4.cx / 2, top + height / 2 - tSize4.cy / 2)
-	elif (grid.m_paint.m_defaultUIStyle == "light"):
-		paint.drawText(diffRange, "rgb(0,0,0)", font1, left + width * 0.7 + 5 + tSize5.cx / 2 - tSize4.cx / 2, top + height / 2- tSize4.cy / 2)
-
 m_paint = FCPaint() #创建绘图对象
 facecat.m_paintCallBack = onViewPaint 
 facecat.m_paintBorderCallBack = onViewPaintBorder 
@@ -300,8 +275,6 @@ facecat.m_mouseMoveCallBack = onViewMouseMove
 facecat.m_mouseUpCallBack = onViewMouseUp
 facecat.m_mouseWheelCallBack = onViewMouseWheel
 facecat.m_clickCallBack = onViewClick
-facecat.m_paintGridCellCallBack = onPaintGridCell
-facecat.m_paintGridColumnCallBack = onPaintGridColumn
 
 def WndProc(hwnd,msg,wParam,lParam):
 	if msg == WM_DESTROY:
@@ -355,28 +328,231 @@ def WndProc(hwnd,msg,wParam,lParam):
 			invalidate(m_paint)
 	return win32gui.DefWindowProc(hwnd,msg,wParam,lParam)
 
+#面积图数据
+class PyrometerData(FCView):
+	def __init__(self):
+		super().__init__()
+		self.m_value = 0 #数值
+		self.m_key = None
+		self.m_firstPrice = None
+		self.m_data = None
+		self.m_type = "pdata"
+
+#面积图
+class PyrometerDiv(FCView):
+	def __init__(self):
+		super().__init__()
+		self.m_useAnimation = FALSE #是否使用动画
+		self.m_type = "pyrometer" #类型
+		self.INF = 0x3f3f3f; #无效数据
+		self.Rwidth = 0
+		self.Rheight = 0;
+	pass
+
+def layoutrow(pyrometer, R, w):
+	width = pyrometer.m_size.cx
+	height = pyrometer.m_size.cy
+	lx = width - pyrometer.Rwidth
+	ly = height - pyrometer.Rheight
+	direction = 0;  # 0: horizontal;  1: vertical
+
+	# refresh Rwidth, Rheight
+	sumValue = 0
+	for x in range(0, len(R)):
+		sumValue = sumValue + R[x]
+	ext = sumValue / w
+	if (abs(w - pyrometer.Rwidth) <= 1e-6):
+		pyrometer.Rheight = pyrometer.Rheight - ext
+		direction = 0
+	else:
+		pyrometer.Rwidth = pyrometer.Rwidth - ext
+		direction = 1
+
+	# store
+	for x in range(0, len(R)):
+		r = R[x]
+		if (direction == 0):
+			hh = ext
+			ww = r / ext
+			newRect = FCRect(0, 0, 0, 0)
+			newRect.left = lx;
+			newRect.top = ly;
+			newRect.right = lx + ww;
+			newRect.bottom = ly + hh;
+			pyrometer.m_rects.append(newRect)
+			# refresh
+			lx = lx + ww
+		else:
+			ww = ext
+			hh = r / ext
+			newRect = FCRect(0, 0, 0, 0)
+			newRect.left = lx;
+			newRect.top = ly;
+			newRect.right = lx + ww;
+			newRect.bottom = ly + hh;
+			pyrometer.m_rects.append(newRect)
+			# refresh
+			ly = ly + hh;
+
+def rWidth(pyrometer, R, w):
+	return min(pyrometer.Rwidth, pyrometer.Rheight)
+
+def worst(pyrometer, R, w):
+	if (len(R) == 0):
+		return pyrometer.INF
+	rmx = 0
+	rmn = pyrometer.INF
+	s = 0
+	for x in range(0, len(R)):
+		r = R[x]
+		s = s + r
+		if (r > rmx):
+			rmx = r
+		if (r < rmn):
+			rmn = r
+	pw = math.pow(w, 2)
+	sw = math.pow(s, 2)
+	return max(pw * rmx / sw, sw / (pw * rmn))
+
+def onPyrometerTime(pyrometer):
+	paint2 = FALSE
+	if(pyrometer.m_useAnimation):
+		for i in range(0, len(pyrometer.m_rects)):
+			subView = pyrometer.m_views[i]
+			targetRect = pyrometer.m_rects[i]
+			nowRect = FCRect(subView.m_location.x, subView.m_location.y, subView.m_location.x + subView.m_size.cx, subView.m_location.y + subView.m_size.cy)
+			if (1 == 1):
+				if (nowRect.left > targetRect.left):
+					nowRect.left -= (nowRect.left - targetRect.left) / 4
+					if (nowRect.left - targetRect.left < 10):
+						nowRect.left = targetRect.left
+					paint2 = TRUE
+				elif (nowRect.left < targetRect.left):
+					nowRect.left += (targetRect.left - nowRect.left) / 4
+					if (targetRect.left - nowRect.left < 10):
+						nowRect.left = targetRect.left
+					paint2 = TRUE
+			if (1 == 1):
+				if (nowRect.top > targetRect.top):
+					nowRect.top -= (nowRect.top - targetRect.top) / 4
+					if (nowRect.top - targetRect.top < 10):
+						nowRect.top = targetRect.top
+					paint2 = TRUE
+				elif (nowRect.top < targetRect.top):
+					nowRect.top += (targetRect.top - nowRect.top) / 4
+					if (targetRect.top - nowRect.top < 10):
+						nowRect.top = targetRect.top
+					paint2 = TRUE
+			if (1 == 1):
+				if (nowRect.right > targetRect.right):
+					nowRect.right -= (nowRect.right - targetRect.right) / 4
+					if (nowRect.right - targetRect.right < 10):
+						nowRect.right = targetRect.right
+					paint2 = TRUE
+				elif (nowRect.right < targetRect.right):
+					nowRect.right += (targetRect.right - nowRect.right) / 4
+					if (targetRect.right - nowRect.right < 10):
+						nowRect.right = targetRect.right
+					paint2 = TRUE
+			if (1 == 1):
+				if (nowRect.bottom > targetRect.bottom):
+					nowRect.bottom -= (nowRect.bottom - targetRect.bottom) / 4
+					if (nowRect.bottom - targetRect.bottom < 10):
+						nowRect.bottom = targetRect.bottom
+					paint2 = TRUE
+				elif (nowRect.bottom < targetRect.bottom):
+					nowRect.bottom += (targetRect.bottom - nowRect.bottom) / 4
+					if (targetRect.bottom - nowRect.bottom < 10):
+						nowRect.bottom = targetRect.bottom
+					paint2 = TRUE
+			subView.m_location = FCPoint(nowRect.left, nowRect.top)
+			subView.m_size = FCSize(nowRect.right - nowRect.left, nowRect.bottom - nowRect.top)
+	else:
+		for i in range(0, len(pyrometer.m_rects)):
+			subView = pyrometer.m_views[i]
+			targetRect = pyrometer.m_rects[i]
+			subView.m_location = FCPoint(targetRect.left, targetRect.top)
+			subView.m_size = FCSize(targetRect.right - targetRect.left, targetRect.bottom - targetRect.top)
+	if(paint2):
+		invalidateView(pyrometer, pyrometer.m_paint)
+
+def updatePyromoter(pyrometer):
+	pyrometer.m_rects = []
+	totalAmount = 0
+	for i in range(0, len(pyrometer.m_views)):
+		totalAmount += pyrometer.m_views[i].m_value
+	rates = []
+	for i in range(0, len(pyrometer.m_views)):
+		rates.append(pyrometer.m_views[i].m_value / totalAmount)
+	pyrometer.Rwidth = pyrometer.m_size.cx
+	pyrometer.Rheight = pyrometer.m_size.cy
+	areas = []
+	for i in range(0, len(rates)):
+		areas.append(rates[i] * pyrometer.m_size.cx * pyrometer.m_size.cy)
+	children = areas
+	row = []
+	w = min(pyrometer.Rwidth, pyrometer.Rheight)
+	while (1 == 1):
+		if(len(pyrometer.m_rects) > len(pyrometer.m_views)):
+			break
+		if (w <= 0):
+			break
+		if (len(children) == 0):
+			if (len(row) > 0):
+				layoutrow(pyrometer, row, w)  #output current row
+			break
+		c = children[0]
+		if (c == 0):
+			break
+		newrow = []
+		for x in range(0, len(row)):
+			newrow.append(row[x])
+		newrow.append(c);
+		if (worst(pyrometer, row, w) >= worst(pyrometer, newrow, w)):
+			# can be placed in this row
+			#cout << " add: " << c << endl;
+			tmp = []
+			for x in range(1, len(children)):
+				tmp.append(children[x])
+			children = tmp
+			row = newrow
+		else:
+			#placed in a empty new row
+			#cout << " new: " << c << endl;
+			layoutrow(pyrometer, row, w);  # output current row
+			row = []
+			w = rWidth(pyrometer, row, int(w))
+
 def on_message(ws, message):
-	global m_priceList
-	hasData = FALSE
+	global m_pyrometer
+	global m_paint
 	newData = json.loads(message)
 	key = newData["base"] + "," + newData["quote"]
-	rowsSize = len(m_priceList.m_rows)
-	for i in range(0, rowsSize):
-		thisCell = m_priceList.m_rows[i].m_cells[0]
-		if(thisCell.m_value == key):
+	hasData = FALSE
+	viewsSize = len(m_pyrometer.m_views)
+	for i in range(0,viewsSize):
+		thisCell = m_pyrometer.m_views[i]
+		if(thisCell.m_key == key):
 			hasData = TRUE
 			thisCell.m_data = newData
-			thisCell.m_update = 1
+			thisCell.m_value = thisCell.m_value + newData["volume"] * newData["price"]
 			break
 	if(hasData == FALSE):
-		row = FCGridRow()
-		m_priceList.m_rows.append(row)
-		cell = FCGridCell()
-		cell.m_value = key
-		cell.m_data = newData
-		cell.m_firstPrice = newData["price"]
-		cell.m_update = 0
-		row.m_cells.append(cell)
+		pData = PyrometerData()
+		pData.m_key = key
+		pData.m_text = key
+		pData.m_data = newData
+		pData.m_value = newData["volume"] * newData["price"]
+		pData.m_size = FCSize(0, 0)
+		pData.m_location = FCPoint(m_pyrometer.m_size.cx, m_pyrometer.m_size.cy)
+		pData.m_firstPrice = newData["price"]
+		pData.m_backColor = "none"
+		pData.m_borderColor = "rgb(0,0,0)"
+		pData.m_visible = TRUE
+		pData.m_parent = m_pyrometer
+		pData.m_paint = m_paint
+		addViewToParent(pData, m_pyrometer)
+	m_pyrometer.m_views = sorted(m_pyrometer.m_views, key=attrgetter('m_value'), reverse=True)
 
 def on_error(ws, error):
     print(error)
@@ -406,24 +582,22 @@ reg = win32gui.RegisterClass(wc)
 hwnd = win32gui.CreateWindow(reg,'facecat-py',WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN,CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT,0,0,0,None)
 m_paint.m_hWnd = hwnd
 
+m_pyrometer = PyrometerDiv()
+m_pyrometer.m_dock = "fill"
+addView(m_pyrometer, m_paint)
+
 #检查CTP的数据
 def checkNewData(a='', b=''):
+	global m_paint
+	global m_pyrometer
+	updatePyromoter(m_pyrometer)
+	onPyrometerTime(m_pyrometer)
 	invalidate(m_paint)
 
 def run(*args):
 	startWebSocket()
 thread.start_new_thread(run, ())
 timer.set_timer(50, checkNewData)
-m_priceList = FCGrid()
-m_priceList.m_name = "price"
-m_priceList.m_rowHeight = 50
-m_priceList.m_headerHeight = 20
-addView(m_priceList, m_paint)
-m_priceList.m_dock = "fill"
-column1 = FCGridColumn()
-column1.m_text = "id"
-column1.m_width = 500
-m_priceList.m_columns.append(column1)
 
 rect = win32gui.GetClientRect(hwnd)
 m_paint.m_size = FCSize(rect[2] - rect[0], rect[3] - rect[1])
