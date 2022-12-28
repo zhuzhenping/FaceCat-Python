@@ -15,6 +15,7 @@ from requests.adapters import HTTPAdapter
 from facecat import *
 import facecat
 import websocket
+#pip install websocket-client 
 import json
 import timer
 try:
@@ -272,18 +273,18 @@ def onPaintGridCell(grid, row, column, cell, paint, left, top, right, bottom):
 	if (grid.m_paint.m_defaultUIStyle == "dark"):
 		paint.drawText(baseUpper, "rgb(255,255,255)", font1, left + 5, top + height / 2 - tSize2.cy)
 		paint.drawText(quoteUpper, "rgb(200,200,200)", font3, left + 5 + tSize.cx, top + height / 2 - tSize2.cy)
-		paint.drawText(strVolume, "rgb(200,200,200)", font3, left + 5, top + height / 2 + tSize2.cy)
+		paint.drawText(strVolume, "rgb(200,200,200)", font3, left + 5, top + height / 2)
 	elif (grid.m_paint.m_defaultUIStyle == "light"):
 		paint.drawText(baseUpper, "rgb(0,0,0)", font1, left + 5, top + height / 2 - tSize2.cy)
 		paint.drawText(quoteUpper, "rgb(50,50,50)", font3, left + 5 + tSize.cx, top + height / 2 - tSize2.cy)
-		paint.drawText(strVolume, "rgb(50,50,50)", font3, left + 5, top + height / 2 + tSize2.cy)
+		paint.drawText(strVolume, "rgb(50,50,50)", font3, left + 5, top + height / 2 )
 	tSize5 = paint.textSize("100000.00%", font1);
-	colRect = FCRect(left + width * 0.7 + 5, top + height / 2 - tSize5.cy, left + width * 0.7 + 5 + tSize5.cx, top + height / 2 + tSize5.cy)
+	colRect = FCRect(left + width * 0.7 + 5, top + height / 2 - tSize5.cy / 2, left + width * 0.7 + 5 + tSize5.cx, top + height / 2 + tSize5.cy / 2)
 	color = "rgb(15,193,118)"
 	if(cell.m_data["price"] >= cell.m_firstPrice):
 		color = "rgb(219,68,83)"
 	paint.drawText(strPrice, color, font2, left + width * 0.4 + 5, top + height / 2 - tSize3.cy)
-	paint.drawText(strPrice2, color, font2, left + width * 0.4 + 5, top + height / 2 + tSize3.cy)
+	paint.drawText(strPrice2, color, font2, left + width * 0.4 + 5, top + height / 2)
 	paint.fillRect(color, colRect.left, colRect.top, colRect.right, colRect.bottom)
 	tSize4 = paint.textSize(diffRange, font1)
 	if (grid.m_paint.m_defaultUIStyle == "dark"):

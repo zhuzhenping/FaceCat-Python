@@ -75,7 +75,8 @@ class FCPaint(object):
 		self.m_clipRect = None #裁剪区域
 		self.m_hFont = None #字体
 		self.m_hOldFont = None #旧的字体
-
+		self.m_textSize = 19 #当前的字体大小
+		self.m_systemFont = "Segoe UI" #系统字体
 	#开始绘图 
 	#rect:区域
 	def beginPaint(self, rect):
@@ -222,6 +223,19 @@ class FCPaint(object):
 	#x:横坐标 
 	#y:纵坐标
 	def drawText(self, text, color, font, x, y):
+		fontSize = int(font.split(" ")[0].replace("px", "")) + 7
+		if(fontSize != self.m_textSize):
+			if(self.m_hOldFont != None):
+				win32gui.SelectObject(self.m_innerHDC, self.m_hOldFont);
+				self.m_hOldFont = None
+			lf = win32gui.LOGFONT()
+			lf.lfFaceName = self.m_systemFont
+			self.m_textSize = fontSize
+			lf.lfHeight = self.m_textSize
+			#lf.lfWeight = 700
+			self.m_hFont = win32gui.CreateFontIndirect(lf)
+			self.m_hOldFont = win32gui.SelectObject(self.m_innerHDC, self.m_hFont);
+			win32gui.SelectObject(self.m_innerHDC, self.m_hFont)
 		win32gui.SetTextColor(self.m_innerHDC, toColor(color))
 		textSize = self.textSize(text,font)
 		pyRect = (int((x + self.m_offsetX) * self.m_scaleFactorX), int((y + self.m_offsetY) * self.m_scaleFactorY), int((x + textSize.cx + self.m_offsetX) * self.m_scaleFactorX), int((y + textSize.cy + self.m_offsetY) * self.m_scaleFactorY))
@@ -292,6 +306,19 @@ class FCPaint(object):
 	#text:文字 
 	#font:字体
 	def textSize(self, text, font):
+		fontSize = int(font.split(" ")[0].replace("px", "")) + 7
+		if(fontSize != self.m_textSize):
+			if(self.m_hOldFont != None):
+				win32gui.SelectObject(self.m_innerHDC, self.m_hOldFont);
+				self.m_hOldFont = None
+			lf = win32gui.LOGFONT()
+			lf.lfFaceName = self.m_systemFont
+			self.m_textSize = fontSize
+			lf.lfHeight = self.m_textSize
+			#lf.lfWeight = 700
+			self.m_hFont = win32gui.CreateFontIndirect(lf)
+			self.m_hOldFont = win32gui.SelectObject(self.m_innerHDC, self.m_hFont);
+			win32gui.SelectObject(self.m_innerHDC, self.m_hFont)
 		cx, cy = win32gui.GetTextExtentPoint32(self.m_innerHDC, text)
 		return FCSize(cx,cy)
 	#绘制矩形 
@@ -303,6 +330,19 @@ class FCPaint(object):
 	#right:右侧坐标 
 	#bottom:方坐标
 	def drawTextAutoEllipsis(self, text, color, font, left, top, right, bottom):
+		fontSize = int(font.split(" ")[0].replace("px", "")) + 7
+		if(fontSize != self.m_textSize):
+			if(self.m_hOldFont != None):
+				win32gui.SelectObject(self.m_innerHDC, self.m_hOldFont);
+				self.m_hOldFont = None
+			lf = win32gui.LOGFONT()
+			lf.lfFaceName = self.m_systemFont
+			self.m_textSize = fontSize
+			lf.lfHeight = self.m_textSize
+			#lf.lfWeight = 700
+			self.m_hFont = win32gui.CreateFontIndirect(lf)
+			self.m_hOldFont = win32gui.SelectObject(self.m_innerHDC, self.m_hFont);
+			win32gui.SelectObject(self.m_innerHDC, self.m_hFont)
 		win32gui.SetTextColor(self.m_innerHDC, toColor(color))
 		textSize = self.textSize(text,font)
 		pyRect = (int((left + self.m_offsetX) * self.m_scaleFactorX), int((top + self.m_offsetY) * self.m_scaleFactorY), int((right + textSize.cx + self.m_offsetX) * self.m_scaleFactorX), int((bottom + textSize.cy + self.m_offsetY) * self.m_scaleFactorY))
@@ -318,8 +358,9 @@ class FCPaint(object):
 		self.m_innerBM = win32gui.CreateCompatibleBitmap(self.m_drawHDC, int(rect.right - rect.left),  int(rect.bottom - rect.top))
 		win32gui.SelectObject(self.m_innerHDC, self.m_innerBM)
 		lf = win32gui.LOGFONT()
-		lf.lfFaceName = "Segoe UI"
-		lf.lfHeight = int(round(19))
+		lf.lfFaceName = self.m_systemFont
+		self.m_textSize = 19
+		lf.lfHeight = self.m_textSize
 		#lf.lfWeight = 700
 		self.m_hFont = win32gui.CreateFontIndirect(lf)
 		self.m_hOldFont = win32gui.SelectObject(self.m_innerHDC, self.m_hFont);
@@ -335,7 +376,6 @@ class FCPaint(object):
 		if(self.m_hFont != None):
 			win32gui.DeleteObject(self.m_hFont);
 			self.m_hFont = None
-
 		win32gui.StretchBlt(self.m_drawHDC, int(clipRect.left), int(clipRect.top), int(clipRect.right - clipRect.left), int(clipRect.bottom - clipRect.top), self.m_innerHDC, int(clipRect.left - rect.left), int(clipRect.top - rect.top), int(clipRect.right - clipRect.left), int(clipRect.bottom - clipRect.top), 13369376)
 		if(self.m_innerHDC != None):
 			win32gui.DeleteObject(self.m_innerHDC)
