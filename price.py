@@ -15,6 +15,8 @@ from requests.adapters import HTTPAdapter
 from facecat import *
 import facecat
 import websocket
+import json
+import timer
 try:
     import thread
 except ImportError:
@@ -218,6 +220,77 @@ def onViewMouseWheel(view, mp, buttons, clicks, delta):
 			zoomInChart(view);
 		invalidateView(view, view.m_paint)
 
+#绘制列 
+#grid:表格 
+#column:列
+#paint:绘图对象 
+#left:左侧坐标 
+#top:上方坐标 
+#right:右侧坐标 
+#bottom:下方坐标
+def onPaintGridColumn(grid, column, paint, left, top, right, bottom):
+	width = right - left
+	height = bottom - top
+	font2 = "14px Arial"
+	tSize = paint.textSize("市场 / 成交额", font2)
+	if (grid.m_paint.m_defaultUIStyle == "dark"):
+		paint.fillRect("rgb(0,0,0)", left, top, right, bottom)
+		paint.drawText("市场 / 成交额", "rgb(200,200,200)", font2, left + 5, top + height / 2 - tSize.cy / 2)
+		paint.drawText("最新价", "rgb(200,200,200)", font2, left + width * 0.4 + 5, top + height / 2 - tSize.cy / 2)
+		paint.drawText("24h涨跌", "rgb(200,200,200)", font2, left + width * 0.7 + 5, top + height / 2 - tSize.cy / 2)
+	elif (grid.m_paint.m_defaultUIStyle == "light"):
+		paint.fillRect("rgb(255,255,255)", left, top, right, bottom)
+		paint.drawText("市场 / 成交额", "rgb(50,50,50)", font2, left + 5, top + height / 2 - tSize.cy / 2)
+		paint.drawText("最新价", "rgb(50,50,50)", font2, left + width * 0.4 + 5, top + height / 2 - tSize.cy / 2)
+		paint.drawText("24h涨跌", "rgb(50,50,50)", font2, left + width * 0.7 + 5, top + height / 2 - tSize.cy / 2)
+
+#绘制单元格 
+#grid:表格 
+#row:行 
+#column:列 
+#cell:单元格
+#paint:绘图对象 
+#left:左侧坐标 
+#top:上方坐标 
+#right:右侧坐标 
+#bottom:下方坐标
+def onPaintGridCell(grid, row, column, cell, paint, left, top, right, bottom):
+	width = right - left
+	height = bottom - top
+	baseUpper = cell.m_data["base"].upper()
+	font1 = "16px Arial"
+	font2 = "14px Arial"
+	font3 = "12px Arial"
+	tSize = paint.textSize(baseUpper, font1)
+	quoteUpper = " / " + cell.m_data["quote"].upper()
+	strVolume = toFixed(cell.m_data["volume"], 6)
+	strPrice = toFixed(cell.m_data["price"], 6)
+	tSize2 = paint.textSize(strVolume, font3)
+	tSize3 = paint.textSize(strPrice, font2)
+	strPrice2 = "¥" + toFixed(cell.m_data["price"] * 7.24, 6)
+	diffRange = toFixed((cell.m_data["price"] - cell.m_firstPrice) / cell.m_data["price"] * 100, 2) + "%"
+	if (grid.m_paint.m_defaultUIStyle == "dark"):
+		paint.drawText(baseUpper, "rgb(255,255,255)", font1, left + 5, top + height / 2 - tSize2.cy)
+		paint.drawText(quoteUpper, "rgb(200,200,200)", font3, left + 5 + tSize.cx, top + height / 2 - tSize2.cy)
+		paint.drawText(strVolume, "rgb(200,200,200)", font3, left + 5, top + height / 2 + tSize2.cy)
+	elif (grid.m_paint.m_defaultUIStyle == "light"):
+		paint.drawText(baseUpper, "rgb(0,0,0)", font1, left + 5, top + height / 2 - tSize2.cy)
+		paint.drawText(quoteUpper, "rgb(50,50,50)", font3, left + 5 + tSize.cx, top + height / 2 - tSize2.cy)
+		paint.drawText(strVolume, "rgb(50,50,50)", font3, left + 5, top + height / 2 + tSize2.cy)
+	tSize5 = paint.textSize("100000.00%", font1);
+	colRect = FCRect(left + width * 0.7 + 5, top + height / 2 - tSize5.cy, left + width * 0.7 + 5 + tSize5.cx, top + height / 2 + tSize5.cy)
+	color = "rgb(15,193,118)"
+	if(cell.m_data["price"] >= cell.m_firstPrice):
+		color = "rgb(219,68,83)"
+	paint.drawText(strPrice, color, font2, left + width * 0.4 + 5, top + height / 2 - tSize3.cy)
+	paint.drawText(strPrice2, color, font2, left + width * 0.4 + 5, top + height / 2 + tSize3.cy)
+	paint.fillRect(color, colRect.left, colRect.top, colRect.right, colRect.bottom)
+	tSize4 = paint.textSize(diffRange, font1)
+	if (grid.m_paint.m_defaultUIStyle == "dark"):
+		paint.drawText(diffRange, "rgb(255,255,255)", font1, left + width * 0.7 + 5 + tSize5.cx / 2 - tSize4.cx / 2, top + height / 2 - tSize4.cy / 2)
+	elif (grid.m_paint.m_defaultUIStyle == "light"):
+		paint.drawText(diffRange, "rgb(0,0,0)", font1, left + width * 0.7 + 5 + tSize5.cx / 2 - tSize4.cx / 2, top + height / 2- tSize4.cy / 2)
+
 m_paint = FCPaint() #创建绘图对象
 facecat.m_paintCallBack = onViewPaint 
 facecat.m_paintBorderCallBack = onViewPaintBorder 
@@ -226,6 +299,8 @@ facecat.m_mouseMoveCallBack = onViewMouseMove
 facecat.m_mouseUpCallBack = onViewMouseUp
 facecat.m_mouseWheelCallBack = onViewMouseWheel
 facecat.m_clickCallBack = onViewClick
+facecat.m_paintGridCellCallBack = onPaintGridCell
+facecat.m_paintGridColumnCallBack = onPaintGridColumn
 
 def WndProc(hwnd,msg,wParam,lParam):
 	if msg == WM_DESTROY:
@@ -280,13 +355,33 @@ def WndProc(hwnd,msg,wParam,lParam):
 	return win32gui.DefWindowProc(hwnd,msg,wParam,lParam)
 
 def on_message(ws, message):
-	print(message)
+	global m_priceList
+	hasData = FALSE
+	newData = json.loads(message)
+	key = newData["base"] + "," + newData["quote"]
+	rowsSize = len(m_priceList.m_rows)
+	for i in range(0, rowsSize):
+		thisCell = m_priceList.m_rows[i].m_cells[0]
+		if(thisCell.m_value == key):
+			hasData = TRUE
+			thisCell.m_data = newData
+			thisCell.m_update = 1
+			break
+	if(hasData == FALSE):
+		row = FCGridRow()
+		m_priceList.m_rows.append(row)
+		cell = FCGridCell()
+		cell.m_value = key
+		cell.m_data = newData
+		cell.m_firstPrice = newData["price"]
+		cell.m_update = 0
+		row.m_cells.append(cell)
 
 def on_error(ws, error):
     print(error)
 
 def on_close(ws, close_status_code, close_msg):
-    print("### closed ###")
+    print("closed")
 
 def on_open(ws):
     print("start")
@@ -310,12 +405,17 @@ reg = win32gui.RegisterClass(wc)
 hwnd = win32gui.CreateWindow(reg,'facecat-py',WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN,CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT,0,0,0,None)
 m_paint.m_hWnd = hwnd
 
+#检查CTP的数据
+def checkNewData(a='', b=''):
+	invalidate(m_paint)
+
 def run(*args):
 	startWebSocket()
 thread.start_new_thread(run, ())
-
+timer.set_timer(50, checkNewData)
 m_priceList = FCGrid()
 m_priceList.m_name = "price"
+m_priceList.m_rowHeight = 50
 m_priceList.m_headerHeight = 20
 addView(m_priceList, m_paint)
 m_priceList.m_dock = "fill"
