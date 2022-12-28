@@ -72,50 +72,55 @@ def onViewPaint(view, paint, clipRect):
 		drawDiv(view, paint, clipRect)
 	elif (view.m_type == "pyrometer"):
 		drawDiv(view, paint, clipRect)
-	elif (view.m_type == "pdata"):
-		backColor = "none"
-		borderColor = "none"
-		if (view.m_parent.m_paint.m_defaultUIStyle == "dark"):
-			if(view.m_data["price"] >= view.m_firstPrice):
-				backColor = "rgb(219,68,83)"
-			else:
-				backColor = "rgb(15,193,118)"
-			borderColor = "rgb(0,0,0)"
-		elif(view.m_parent.m_paint.m_defaultUIStyle == "light"):
-			if(view.m_data["price"] >= view.m_firstPrice):
-				backColor = "rgb(255,255,255)"
-			else:
-				backColor = "rgb(255,255,255)"
-			borderColor = "rgb(255,255,255)"
-		paint.fillRect(backColor, 0, 0, view.m_size.cx, view.m_size.cy)
-		paint.drawRect(borderColor, 1, 0, 0, 0, view.m_size.cx, view.m_size.cy)
-		fontSize1 = int(min(view.m_size.cx, view.m_size.cy) / 5)
-		if(fontSize1 > 1):
-			baseUpper = view.m_data["base"].upper()
-			font1 = str(fontSize1) + "px Arial"
-			tSize = paint.textSize(baseUpper, font1)
-			while(tSize.cx > view.m_size.cx - 10):
-				fontSize1 = fontSize1 - 1
-				if(fontSize1 < 1):
-					return
+		for i in range(0, len(view.m_childen)):
+			pData = view.m_childen[i]
+			backColor = "none"
+			borderColor = "none"
+			if (view.m_paint.m_defaultUIStyle == "dark"):
+				if(pData.m_data["price"] >= pData.m_firstPrice):
+					backColor = "rgb(219,68,83)"
+				else:
+					backColor = "rgb(15,193,118)"
+				borderColor = "rgb(0,0,0)"
+			elif(view.m_paint.m_defaultUIStyle == "light"):
+				if(pData.m_data["price"] >= pData.m_firstPrice):
+					backColor = "rgb(255,255,255)"
+				else:
+					backColor = "rgb(255,255,255)"
+				borderColor = "rgb(255,255,255)"
+			paint.fillRect(backColor, pData.m_location.x, pData.m_location.y, pData.m_location.x + pData.m_size.cx, pData.m_location.y + pData.m_size.cy)
+			paint.drawRect(borderColor, 1, 0, pData.m_location.x, pData.m_location.y, pData.m_location.x + pData.m_size.cx, pData.m_location.y + pData.m_size.cy)
+			fontSize1 = int(min(pData.m_size.cx, pData.m_size.cy) / 5)
+			if(fontSize1 > 1):
+				baseUpper = pData.m_data["base"].upper()
 				font1 = str(fontSize1) + "px Arial"
-				tSize = paint.textSize(baseUpper, font1)   
-			quoteUpper = view.m_data["quote"].upper()
-			font2 = str(fontSize1 / 2) + "px Arial"
-			tSize2 = paint.textSize(quoteUpper, font2)
-			if (view.m_parent.m_paint.m_defaultUIStyle == "dark"):
-				paint.drawText(baseUpper, "rgb(255,255,255)", font1, (view.m_size.cx - tSize.cx) / 2, view.m_size.cy / 2 - tSize.cy)
-				paint.drawText(quoteUpper, "rgb(255,255,255)", font2, (view.m_size.cx - tSize2.cx) / 2, view.m_size.cy / 2)
-			elif (view.m_parent.m_paint.m_defaultUIStyle == "light"):
-				paint.drawText(baseUpper, "rgb(0,0,0)", font1, (view.m_size.cx - tSize.cx) / 2, view.m_size.cy / 2 - tSize.cy)
-				paint.drawText(quoteUpper, "rgb(0,0,0)", font2, (view.m_size.cx - tSize2.cx) / 2, view.m_size.cy / 2)
-			strPrice = toFixed(view.m_data["price"], 6)
-			font3 = str(fontSize1 * 2 / 3) + "px Arial"
-			tSize5 = paint.textSize(strPrice, font3)
-			if (view.m_parent.m_paint.m_defaultUIStyle == "dark"):
-				paint.drawText(strPrice, "rgb(255,255,255)", font3, (view.m_size.cx - tSize5.cx) / 2, view.m_size.cy / 2 + tSize.cy)
-			elif(view.m_parent.m_paint.m_defaultUIStyle == "light"):
-				paint.drawText(strPrice, "rgb(0,0,0)", font3, (view.m_size.cx - tSize5.cx) / 2, view.m_size.cy / 2 + tSize.cy)
+				tSize = paint.textSize(baseUpper, font1)
+				isContinue = FALSE
+				while(tSize.cx > pData.m_size.cx - 10):
+					fontSize1 = fontSize1 - 1
+					if(fontSize1 < 1):
+						isContinue = TRUE
+						break
+					font1 = str(fontSize1) + "px Arial"
+					tSize = paint.textSize(baseUpper, font1)   
+				if(isContinue):
+					continue
+				quoteUpper = pData.m_data["quote"].upper()
+				font2 = str(fontSize1 / 2) + "px Arial"
+				tSize2 = paint.textSize(quoteUpper, font2)
+				if (view.m_paint.m_defaultUIStyle == "dark"):
+					paint.drawText(baseUpper, "rgb(255,255,255)", font1, pData.m_location.x + (pData.m_size.cx - tSize.cx) / 2, pData.m_location.y + pData.m_size.cy / 2 - tSize.cy)
+					paint.drawText(quoteUpper, "rgb(255,255,255)", font2, pData.m_location.x + (pData.m_size.cx - tSize2.cx) / 2, pData.m_location.y + pData.m_size.cy / 2)
+				elif (view.m_paint.m_defaultUIStyle == "light"):
+					paint.drawText(baseUpper, "rgb(0,0,0)", font1, pData.m_location.x + (pData.m_size.cx - tSize.cx) / 2, pData.m_location.y + pData.m_size.cy / 2 - tSize.cy)
+					paint.drawText(quoteUpper, "rgb(0,0,0)", font2, pData.m_location.x + (pData.m_size.cx - tSize2.cx) / 2, pData.m_location.y + pData.m_size.cy / 2)
+				strPrice = toFixed(pData.m_data["price"], 6)
+				font3 = str(fontSize1 * 2 / 3) + "px Arial"
+				tSize5 = paint.textSize(strPrice, font3)
+				if (view.m_paint.m_defaultUIStyle == "dark"):
+					paint.drawText(strPrice, "rgb(255,255,255)", font3, pData.m_location.x + (pData.m_size.cx - tSize5.cx) / 2, pData.m_location.y + pData.m_size.cy / 2 + tSize.cy)
+				elif(view.m_paint.m_defaultUIStyle == "light"):
+					paint.drawText(strPrice, "rgb(0,0,0)", font3, pData.m_location.x + (pData.m_size.cx - tSize5.cx) / 2, pData.m_location.y + pData.m_size.cy / 2 + tSize.cy)
 	else:
 		drawButton(view, paint, clipRect)
 
@@ -329,14 +334,15 @@ def WndProc(hwnd,msg,wParam,lParam):
 	return win32gui.DefWindowProc(hwnd,msg,wParam,lParam)
 
 #面积图数据
-class PyrometerData(FCView):
+class PyrometerData(object):
 	def __init__(self):
-		super().__init__()
 		self.m_value = 0 #数值
 		self.m_key = None
 		self.m_firstPrice = None
 		self.m_data = None
 		self.m_type = "pdata"
+		self.m_location = FCPoint(0, 0)
+		self.m_size = FCSize(0, 0)
 
 #面积图
 class PyrometerDiv(FCView):
@@ -346,7 +352,8 @@ class PyrometerDiv(FCView):
 		self.m_type = "pyrometer" #类型
 		self.INF = 0x3f3f3f; #无效数据
 		self.Rwidth = 0
-		self.Rheight = 0;
+		self.Rheight = 0
+		self.m_childen = []
 	pass
 
 def layoutrow(pyrometer, R, w):
@@ -418,7 +425,7 @@ def onPyrometerTime(pyrometer):
 	paint2 = FALSE
 	if(pyrometer.m_useAnimation):
 		for i in range(0, len(pyrometer.m_rects)):
-			subView = pyrometer.m_views[i]
+			subView = pyrometer.m_childen[i]
 			targetRect = pyrometer.m_rects[i]
 			nowRect = FCRect(subView.m_location.x, subView.m_location.y, subView.m_location.x + subView.m_size.cx, subView.m_location.y + subView.m_size.cy)
 			if (1 == 1):
@@ -469,7 +476,7 @@ def onPyrometerTime(pyrometer):
 			subView.m_size = FCSize(nowRect.right - nowRect.left, nowRect.bottom - nowRect.top)
 	else:
 		for i in range(0, len(pyrometer.m_rects)):
-			subView = pyrometer.m_views[i]
+			subView = pyrometer.m_childen[i]
 			targetRect = pyrometer.m_rects[i]
 			subView.m_location = FCPoint(targetRect.left, targetRect.top)
 			subView.m_size = FCSize(targetRect.right - targetRect.left, targetRect.bottom - targetRect.top)
@@ -479,11 +486,11 @@ def onPyrometerTime(pyrometer):
 def updatePyromoter(pyrometer):
 	pyrometer.m_rects = []
 	totalAmount = 0
-	for i in range(0, len(pyrometer.m_views)):
-		totalAmount += pyrometer.m_views[i].m_value
+	for i in range(0, len(pyrometer.m_childen)):
+		totalAmount += pyrometer.m_childen[i].m_value
 	rates = []
-	for i in range(0, len(pyrometer.m_views)):
-		rates.append(pyrometer.m_views[i].m_value / totalAmount)
+	for i in range(0, len(pyrometer.m_childen)):
+		rates.append(pyrometer.m_childen[i].m_value / totalAmount)
 	pyrometer.Rwidth = pyrometer.m_size.cx
 	pyrometer.Rheight = pyrometer.m_size.cy
 	areas = []
@@ -493,7 +500,7 @@ def updatePyromoter(pyrometer):
 	row = []
 	w = min(pyrometer.Rwidth, pyrometer.Rheight)
 	while (1 == 1):
-		if(len(pyrometer.m_rects) > len(pyrometer.m_views)):
+		if(len(pyrometer.m_rects) > len(pyrometer.m_childen)):
 			break
 		if (w <= 0):
 			break
@@ -529,9 +536,9 @@ def on_message(ws, message):
 	newData = json.loads(message)
 	key = newData["base"] + "," + newData["quote"]
 	hasData = FALSE
-	viewsSize = len(m_pyrometer.m_views)
+	viewsSize = len(m_pyrometer.m_childen)
 	for i in range(0,viewsSize):
-		thisCell = m_pyrometer.m_views[i]
+		thisCell = m_pyrometer.m_childen[i]
 		if(thisCell.m_key == key):
 			hasData = TRUE
 			thisCell.m_data = newData
@@ -546,13 +553,8 @@ def on_message(ws, message):
 		pData.m_size = FCSize(0, 0)
 		pData.m_location = FCPoint(m_pyrometer.m_size.cx, m_pyrometer.m_size.cy)
 		pData.m_firstPrice = newData["price"]
-		pData.m_backColor = "none"
-		pData.m_borderColor = "rgb(0,0,0)"
-		pData.m_visible = TRUE
-		pData.m_parent = m_pyrometer
-		pData.m_paint = m_paint
-		addViewToParent(pData, m_pyrometer)
-	m_pyrometer.m_views = sorted(m_pyrometer.m_views, key=attrgetter('m_value'), reverse=True)
+		m_pyrometer.m_childen.append(pData)
+	m_pyrometer.m_childen = sorted(m_pyrometer.m_childen, key=attrgetter('m_value'), reverse=True)
 
 def on_error(ws, error):
     print(error)
