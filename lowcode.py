@@ -211,6 +211,9 @@ def readXmlNode(paint, node, parent):
 					splitter.m_backColor = "rgb(100,100,100)"
 				elif(view.m_paint.m_defaultUIStyle == "light"):
 					splitter.m_backColor = "rgb(150,150,150)"
+				if "candragsplitter" in child.attrib:
+					if(child.attrib["candragsplitter"] == "true"):
+						splitter.m_allowDrag = TRUE
 				view.m_splitter = splitter
 				splitterposition = child.attrib["splitterposition"]
 				splitStr = splitterposition.split(',')

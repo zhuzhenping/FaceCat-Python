@@ -296,6 +296,7 @@ elif(m_split.m_paint.m_defaultUIStyle == "light"):
 m_split.m_dock = "fill"    
         
 m_splitter = FCView()
+m_splitter.m_allowDrag = TRUE
 if(m_split.m_paint.m_defaultUIStyle == "dark"):
 	m_splitter.m_backColor = "rgb(150,150,150)"
 elif(m_split.m_paint.m_defaultUIStyle == "light"):
