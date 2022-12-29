@@ -3012,7 +3012,11 @@ def calcChartIndicator(chart):
 		getRSIData(closeArr, chart.m_rsi1, chart.m_rsi2, chart.m_rsi3)
 	elif(chart.m_showIndicator == "KDJ"):
 		getKDJData(highArr, lowArr, closeArr, chart.m_kdj_k, chart.m_kdj_d, chart.m_kdj_j)
-	calculateChartMaxMin(chart)
+	global m_calculteMaxMin
+	if(m_calculteMaxMin != None):
+		m_calculteMaxMin(chart)
+	else:
+		calculateChartMaxMin(chart)
 
 #计算最大最小值
 #chart:K线
@@ -3240,7 +3244,11 @@ def zoomOutChart(chart):
 					if (newX >= oldX):
 						break
 		checkChartLastVisibleIndex(chart)
-		calculateChartMaxMin(chart)
+		global m_calculteMaxMin
+		if(m_calculteMaxMin != None):
+			m_calculteMaxMin(chart)
+		else:
+			calculateChartMaxMin(chart)
 
 #放大
 #chart:K线
@@ -3289,7 +3297,11 @@ def zoomInChart(chart):
 					if (newX >= oldX):
 						break
 		checkChartLastVisibleIndex(chart)
-		calculateChartMaxMin(chart)
+		global m_calculteMaxMin
+		if(m_calculteMaxMin != None):
+			m_calculteMaxMin(chart)
+		else:
+			calculateChartMaxMin(chart)
 
 #计算坐标轴
 #min:最小值
@@ -4848,6 +4860,7 @@ def mouseMoveChart(chart, firstTouch, secondTouch, firstPoint, secondPoint):
 	global m_secondTouchIndexCache_Chart
 	global m_secondTouchPointCache_Chart
 	global m_mouseDownPoint_Chart
+	global m_calculteMaxMin
 	if(chart.m_data == None or len(chart.m_data) == 0):
 		return
 	mp = firstPoint
@@ -4957,7 +4970,10 @@ def mouseMoveChart(chart, firstTouch, secondTouch, firstPoint, secondPoint):
 						chart.m_lastVisibleIndex = chart.m_lastVisibleIndex - 1
 					checkChartLastVisibleIndex(chart)
 					resetChartVisibleRecord(chart)
-					calculateChartMaxMin(chart)
+					if(m_calculteMaxMin != None):
+						m_calculteMaxMin(chart)
+					else:
+						calculateChartMaxMin(chart)
 	elif (firstTouch):
 		subIndex = int((m_firstTouchPointCache_Chart.x - firstPoint.x) / chart.m_hScalePixel)
 		if (chart.m_lastVisibleIndex + subIndex > len(chart.m_data) - 1):
@@ -4968,7 +4984,10 @@ def mouseMoveChart(chart, firstTouch, secondTouch, firstPoint, secondPoint):
 		chart.m_lastVisibleIndex = m_lastIndexCache_Chart + subIndex
 		checkChartLastVisibleIndex(chart)
 		resetChartVisibleRecord(chart)
-		calculateChartMaxMin(chart)
+		if(m_calculteMaxMin != None):
+			m_calculteMaxMin(chart)
+		else:
+			calculateChartMaxMin(chart)
 
 #绘制刻度
 #chart:K线
@@ -5525,12 +5544,17 @@ m_paintChartScale = None #绘制坐标轴回调
 m_paintChartStock = None #绘制K线回调
 m_paintChartPlot = None #绘制画线回调
 m_paintChartCrossLine = None #绘制十字线回调
+m_calculteMaxMin = None #计算最大最小值的回调
 
 #清除图形
 #chart:K线
 #paint:绘图对象
 #clipRect:裁剪区域
 def drawChart(chart, paint, clipRect):
+	global m_paintChartScale
+	global m_paintChartStock
+	global m_paintChartPlot
+	global m_paintChartCrossLine
 	if (chart.m_backColor != "none"):
 		paint.fillRect(chart.m_backColor, 0, 0, chart.m_size.cx, chart.m_size.cy)
 	if(m_paintChartScale != None):
