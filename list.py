@@ -330,19 +330,19 @@ def drawListItem(view, paint, clipRect):
 			tSize2 = paint.textSize(quoteUpper, font2)
 	            
 			if (view.m_paint.m_defaultUIStyle == "dark"):
-				paint.drawText(baseUpper, "rgb(255,255,255)", font1, rtRight, view.m_size.cy / 2 - tSize.cy + 2 - scrollV + view.m_location.y)
-				paint.drawText(quoteUpper, "rgb(255,255,255)", font2, rtRight, view.m_size.cy / 2 + 2 - scrollV + view.m_location.y)
+				paint.drawText(baseUpper, "rgb(255,255,255)", font1, rtRight, view.m_size.cy / 2 - tSize.cy + 2 - scrollV + view.m_location.y - tSize.cy / 2)
+				paint.drawText(quoteUpper, "rgb(255,255,255)", font2, rtRight, view.m_size.cy / 2 + 2 - scrollV + view.m_location.y - tSize.cy / 2)
 			elif (view.m_paint.m_defaultUIStyle == "light"):
-				paint.drawText(baseUpper, "rgb(0,0,0)", font1, rtRight, view.m_size.cy / 2 - tSize.cy + 2 - scrollV + view.m_location.y)
-				paint.drawText(quoteUpper, "rgb(0,0,0)", font2, rtRight, view.m_size.cy / 2 + 2 - scrollV + view.m_location.y)
+				paint.drawText(baseUpper, "rgb(0,0,0)", font1, rtRight, view.m_size.cy / 2 - tSize.cy + 2 - scrollV + view.m_location.y - tSize.cy / 2)
+				paint.drawText(quoteUpper, "rgb(0,0,0)", font2, rtRight, view.m_size.cy / 2 + 2 - scrollV + view.m_location.y - tSize.cy / 2)
 	            
 			strPrice = toFixed(view.m_data["price"], 6)
 			font3 = str(fontSize1 * 2 / 3) + "px Arial"
 			tSize5 = paint.textSize(strPrice, font3)
 			if (view.m_paint.m_defaultUIStyle == "dark"):
-				paint.drawText(strPrice, "rgb(255,255,255)", font3, rtRight, view.m_size.cy / 2 + tSize.cy + 2 - scrollV + view.m_location.y)
+				paint.drawText(strPrice, "rgb(255,255,255)", font3, rtRight, view.m_size.cy / 2 + tSize.cy + 2 - scrollV + view.m_location.y - tSize.cy / 2)
 			elif (view.m_paint.m_defaultUIStyle == "light"):
-				paint.drawText(strPrice, "rgb(0,0,0)", font3, rtRight, view.m_size.cy / 2 + tSize.cy + 2 - scrollV + view.m_location.y)
+				paint.drawText(strPrice, "rgb(0,0,0)", font3, rtRight, view.m_size.cy / 2 + tSize.cy + 2 - scrollV + view.m_location.y - tSize.cy / 2)
 	
 def updateList(dynaList):
 	dynaList.m_rects = []

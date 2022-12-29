@@ -109,18 +109,18 @@ def onViewPaint(view, paint, clipRect):
 				font2 = str(fontSize1 / 2) + "px Arial"
 				tSize2 = paint.textSize(quoteUpper, font2)
 				if (view.m_paint.m_defaultUIStyle == "dark"):
-					paint.drawText(baseUpper, "rgb(255,255,255)", font1, pData.m_location.x + (pData.m_size.cx - tSize.cx) / 2, pData.m_location.y + pData.m_size.cy / 2 - tSize.cy)
-					paint.drawText(quoteUpper, "rgb(255,255,255)", font2, pData.m_location.x + (pData.m_size.cx - tSize2.cx) / 2, pData.m_location.y + pData.m_size.cy / 2)
+					paint.drawText(baseUpper, "rgb(255,255,255)", font1, pData.m_location.x + (pData.m_size.cx - tSize.cx) / 2, pData.m_location.y + pData.m_size.cy / 2 - tSize.cy - tSize.cy / 2)
+					paint.drawText(quoteUpper, "rgb(255,255,255)", font2, pData.m_location.x + (pData.m_size.cx - tSize2.cx) / 2, pData.m_location.y + pData.m_size.cy / 2 - tSize.cy / 2)
 				elif (view.m_paint.m_defaultUIStyle == "light"):
-					paint.drawText(baseUpper, "rgb(0,0,0)", font1, pData.m_location.x + (pData.m_size.cx - tSize.cx) / 2, pData.m_location.y + pData.m_size.cy / 2 - tSize.cy)
-					paint.drawText(quoteUpper, "rgb(0,0,0)", font2, pData.m_location.x + (pData.m_size.cx - tSize2.cx) / 2, pData.m_location.y + pData.m_size.cy / 2)
+					paint.drawText(baseUpper, "rgb(0,0,0)", font1, pData.m_location.x + (pData.m_size.cx - tSize.cx) / 2, pData.m_location.y + pData.m_size.cy / 2 - tSize.cy- tSize.cy / 2)
+					paint.drawText(quoteUpper, "rgb(0,0,0)", font2, pData.m_location.x + (pData.m_size.cx - tSize2.cx) / 2, pData.m_location.y + pData.m_size.cy / 2- tSize.cy / 2)
 				strPrice = toFixed(pData.m_data["price"], 6)
 				font3 = str(fontSize1 * 2 / 3) + "px Arial"
 				tSize5 = paint.textSize(strPrice, font3)
 				if (view.m_paint.m_defaultUIStyle == "dark"):
-					paint.drawText(strPrice, "rgb(255,255,255)", font3, pData.m_location.x + (pData.m_size.cx - tSize5.cx) / 2, pData.m_location.y + pData.m_size.cy / 2 + tSize.cy)
+					paint.drawText(strPrice, "rgb(255,255,255)", font3, pData.m_location.x + (pData.m_size.cx - tSize5.cx) / 2, pData.m_location.y + pData.m_size.cy / 2 + tSize.cy- tSize.cy / 2)
 				elif(view.m_paint.m_defaultUIStyle == "light"):
-					paint.drawText(strPrice, "rgb(0,0,0)", font3, pData.m_location.x + (pData.m_size.cx - tSize5.cx) / 2, pData.m_location.y + pData.m_size.cy / 2 + tSize.cy)
+					paint.drawText(strPrice, "rgb(0,0,0)", font3, pData.m_location.x + (pData.m_size.cx - tSize5.cx) / 2, pData.m_location.y + pData.m_size.cy / 2 + tSize.cy- tSize.cy / 2)
 	else:
 		drawButton(view, paint, clipRect)
 
