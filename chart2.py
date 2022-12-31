@@ -7,17 +7,12 @@
 import win32gui
 import win32api
 from win32con import *
-from xml.etree import ElementTree as ET
 import math
-import requests
 import time
-from requests.adapters import HTTPAdapter
 from facecat import *
 import facecat
-import websocket
-#pip install websocket-client 
-import json
 import timer
+import random
 try:
     import thread
 except ImportError:
@@ -56,7 +51,7 @@ def onViewPaint(view, paint, clipRect):
 	elif(view.m_type == "chart"):
 		resetChartVisibleRecord(view)
 		checkChartLastVisibleIndex(view)
-		calculateChartMaxMin(view)
+		onCalculateChartMaxMin(view)
 		drawChart(view, paint, clipRect)
 	elif(view.m_type == "grid"):
 		drawDiv(view, paint, clipRect)
@@ -70,14 +65,8 @@ def onViewPaint(view, paint, clipRect):
 			paint.drawText(view.m_text, view.m_textColor, view.m_font, 0, (view.m_size.cy - tSize.cy) / 2)
 	elif(view.m_type == "div" or view.m_type =="tabpage" or view.m_type =="tabview" or view.m_type =="layout"):
 		drawDiv(view, paint, clipRect)
-	elif(view.m_type == "ldata"):
-		a = 0
 	else:
 		drawButton(view, paint, clipRect)
-	if(view.m_name == "list"):
-		for i in range(0, len(view.m_views)):
-			if(view.m_views[i].m_isMove == FALSE):
-				drawListItem(view.m_views[i], paint, clipRect)
 
 #绘制视图边线
 #view:视图
@@ -91,12 +80,6 @@ def onViewPaintBorder(view, paint, clipRect):
 	elif(view.m_type == "div" or view.m_type =="tabpage" or view.m_type =="tabview" or view.m_type =="layout"):
 		drawDivScrollBar(view, paint, clipRect)
 		drawDivBorder(view, paint, clipRect)
-	elif(view.m_type == "ldata"):
-		a = 0
-	if(view.m_name == "list"):
-		for i in range(0, len(view.m_views)):
-			if(view.m_views[i].m_isMove):
-				drawListItem(view.m_views[i], paint, clipRect)
 
 #视图的鼠标移动方法
 #view 视图
@@ -236,6 +219,153 @@ def onViewMouseWheel(view, mp, buttons, clicks, delta):
 		mouseWheelDiv(view.m_parent, delta)
 		invalidateView(view.m_parent, view.m_parent.m_paint)
 
+#重新计算最大最小值
+def onCalculateChartMaxMin(chart):
+	chart.m_candleMax = 0
+	chart.m_candleMin = 0
+	chart.m_volMax = 0
+	chart.m_volMin = 0
+	chart.m_indMin = 0
+	chart.m_indMin = 0
+	if (chart.m_data != None and len(chart.m_data) > 0):
+		lastValidIndex = chart.m_lastVisibleIndex
+		if(chart.m_lastValidIndex != -1):
+			lastValidIndex = chart.m_lastValidIndex
+		for i in range(chart.m_firstVisibleIndex, lastValidIndex + 1):
+			if (i == chart.m_firstVisibleIndex):
+				chart.m_candleMax = chart.m_data[i].m_data1
+				chart.m_candleMin = chart.m_data[i].m_data1
+			else:
+				if (chart.m_candleMax < chart.m_data[i].m_data1):
+					chart.m_candleMax = chart.m_data[i].m_data1
+				if (chart.m_candleMin > chart.m_data[i].m_data1):
+					chart.m_candleMin = chart.m_data[i].m_data1
+				if (chart.m_candleMax < chart.m_data[i].m_data2):
+					chart.m_candleMax = chart.m_data[i].m_data2
+				if (chart.m_candleMin > chart.m_data[i].m_data2):
+					chart.m_candleMin = chart.m_data[i].m_data2
+				if (chart.m_candleMax < chart.m_data[i].m_data3):
+					chart.m_candleMax = chart.m_data[i].m_data3
+				if (chart.m_candleMin > chart.m_data[i].m_data3):
+					chart.m_candleMin = chart.m_data[i].m_data3
+				if (chart.m_candleMax < chart.m_data[i].m_data4):
+					chart.m_candleMax = chart.m_data[i].m_data4
+				if (chart.m_candleMin > chart.m_data[i].m_data4):
+					chart.m_candleMin = chart.m_data[i].m_data4
+				if (chart.m_candleMax < chart.m_data[i].m_data5):
+					chart.m_candleMax = chart.m_data[i].m_data5
+				if (chart.m_candleMin > chart.m_data[i].m_data5):
+					chart.m_candleMin = chart.m_data[i].m_data5
+				if (chart.m_candleMax < chart.m_data[i].m_data6):
+					chart.m_candleMax = chart.m_data[i].m_data6
+				if (chart.m_candleMin > chart.m_data[i].m_data6):
+					chart.m_candleMin = chart.m_data[i].m_data6
+
+
+#绘制线条
+#chart:K线
+#paint:绘图对象
+#clipRect:裁剪区域
+#divIndex:图层
+#datas:数据
+#color:颜色
+#selected:是否选中
+def drawChartLines2(chart, paint, clipRect, divIndex, datas, color, text):
+	drawPoints = []
+	lastX = 0
+	lastY = 0
+	showLast = FALSE
+	for i in range(0, len(datas)):
+		x = getChartX(chart, i + chart.m_firstVisibleIndex)
+		value = datas[i]
+		y = getChartY(chart, divIndex, value)
+		drawPoints.append((x, y))
+		if(i + chart.m_firstVisibleIndex == len(chart.m_data) - 1):
+			showLast = TRUE
+		lastX = x
+		lastY = y
+	paint.drawPolyline(color, 2, 0, drawPoints)
+	if(showLast):
+		r = 10
+		paint.fillEllipse(color, lastX - r, lastY - r, lastX + r, lastY + r)
+		if (chart.m_paint.m_defaultUIStyle == "dark"):
+			paint.drawEllipse("rgb(255,255,255)", 1, 0, lastX - r, lastY - r, lastX + r, lastY + r)
+		elif (chart.m_paint.m_defaultUIStyle == "light"):
+			paint.drawEllipse("rgb(0,0,0)", 1, 0, lastX - r, lastY - r, lastX + r, lastY + r)
+		font = "14px Arial"
+		tSize = paint.textSize(text, font)
+		if (chart.m_paint.m_defaultUIStyle == "dark"):
+			paint.drawText(text, "rgb(255,255,255)", font, lastX - tSize.cx / 2, lastY + tSize.cy + r)
+		elif (chart.m_paint.m_defaultUIStyle == "light"):
+			paint.drawText(text, "rgb(0,0,0)", font, lastX - tSize.cx / 2, lastY + tSize.cy + r)
+
+#绘制K线
+#chart:K线
+#paint:绘图对象
+#clipRect:裁剪区域
+def onPaintChartStock(chart, paint, clipRect):
+	global m_drawColors
+	if (chart.m_data != None and len(chart.m_data) > 0):
+		lastValidIndex = chart.m_lastVisibleIndex
+		if(chart.m_lastValidIndex != -1):
+			lastValidIndex = chart.m_lastValidIndex
+		datas1 = []
+		for i in range(chart.m_firstVisibleIndex, lastValidIndex + 1):
+			datas1.append(chart.m_data[i].m_data1)
+		drawChartLines2(chart, paint, clipRect, 0, datas1, m_drawColors[0], "项目1")
+            
+		datas2 = []
+		for i in range(chart.m_firstVisibleIndex, lastValidIndex + 1):
+			datas2.append(chart.m_data[i].m_data2)
+		drawChartLines2(chart, paint, clipRect, 0, datas2, m_drawColors[1], "项目2")
+            
+		datas3 = []
+		for i in range(chart.m_firstVisibleIndex, lastValidIndex + 1):
+			datas3.append(chart.m_data[i].m_data3)
+		drawChartLines2(chart, paint, clipRect, 0, datas3, m_drawColors[2], "项目3")
+            
+		datas4 = []
+		for i in range(chart.m_firstVisibleIndex, lastValidIndex + 1):
+			datas4.append(chart.m_data[i].m_data4)
+		drawChartLines2(chart, paint, clipRect, 0, datas4, m_drawColors[3], "项目4")
+            
+		datas5 = []
+		for i in range(chart.m_firstVisibleIndex, lastValidIndex + 1):
+			datas5.append(chart.m_data[i].m_data5)
+		drawChartLines2(chart, paint, clipRect, 0, datas5, m_drawColors[4], "项目5")
+            
+		datas6 = []
+		for i in range(chart.m_firstVisibleIndex, lastValidIndex + 1):
+			datas6.append(chart.m_data[i].m_data6)
+		drawChartLines2(chart, paint, clipRect, 0, datas6, m_drawColors[5], "项目6")
+
+#绘制十字线
+#chart:K线
+#paint:绘图对象
+#clipRect:裁剪区域
+def onPaintChartCrossLine(chart, paint, clipRect):
+	global m_drawColors
+	if (chart.m_data != None and len(chart.m_data) > 0):
+		candleDivHeight = getCandleDivHeight(chart)
+		volDivHeight = getVolDivHeight(chart)
+		indDivHeight = getIndDivHeight(chart)
+		crossLineIndex = chart.m_crossStopIndex
+		if (crossLineIndex == -1):
+			crossLineIndex = chart.m_lastVisibleIndex
+		drawTitles = []
+		drawTitles.append("项目1 " + toFixed(chart.m_data[crossLineIndex].m_data1, chart.m_candleDigit))
+		drawTitles.append("项目2 " + toFixed(chart.m_data[crossLineIndex].m_data2, chart.m_candleDigit))
+		drawTitles.append("项目3 " + toFixed(chart.m_data[crossLineIndex].m_data3, chart.m_candleDigit))
+		drawTitles.append("项目4 " + toFixed(chart.m_data[crossLineIndex].m_data4, chart.m_candleDigit))
+		drawTitles.append("项目5 " + toFixed(chart.m_data[crossLineIndex].m_data5, chart.m_candleDigit))
+		drawTitles.append("项目6 " + toFixed(chart.m_data[crossLineIndex].m_data6, chart.m_candleDigit))
+
+		iLeft = chart.m_leftVScaleWidth + 5
+		for i in range(0, len(drawTitles)):
+			tSize = paint.textSize(drawTitles[i], chart.m_font)
+			paint.drawText(drawTitles[i], m_drawColors[i], chart.m_font, iLeft, 5 + tSize.cy / 2)
+			iLeft += tSize.cx + 5
+
 m_paint = FCPaint() #创建绘图对象
 facecat.m_paintCallBack = onViewPaint 
 facecat.m_paintBorderCallBack = onViewPaintBorder 
@@ -244,6 +374,9 @@ facecat.m_mouseMoveCallBack = onViewMouseMove
 facecat.m_mouseUpCallBack = onViewMouseUp
 facecat.m_mouseWheelCallBack = onViewMouseWheel
 facecat.m_clickCallBack = onViewClick
+facecat.m_calculteMaxMin = onCalculateChartMaxMin
+facecat.m_paintChartStock = onPaintChartStock
+facecat.m_paintChartCrossLine = onPaintChartCrossLine
 
 def WndProc(hwnd,msg,wParam,lParam):
 	if msg == WM_DESTROY:
@@ -297,184 +430,6 @@ def WndProc(hwnd,msg,wParam,lParam):
 			invalidate(m_paint)
 	return win32gui.DefWindowProc(hwnd,msg,wParam,lParam)
 
-#面积图数据
-class ListData(FCView):
-	def __init__(self):
-		super().__init__()
-		self.m_value = 0 #数值
-		self.m_key = None
-		self.m_firstPrice = None
-		self.m_data = None
-		self.m_type = "ldata"
-		self.m_isMove = FALSE
-
-#绘制数据项
-def drawListItem(view, paint, clipRect):
-	scrollV = view.m_parent.m_scrollV
-	if(view.m_location.y + view.m_size.cy - scrollV >= 0 and view.m_location.y - scrollV < view.m_parent.m_size.cy):
-		totalValue = view.m_parent.m_totalValue
-		diffRange = toFixed((view.m_data["price"] - view.m_firstPrice) / view.m_data["price"] * 100, 2) + "%"
-		rtRight = (view.m_size.cx - 130) * view.m_value / totalValue
-		if(view.m_backColor != "none"):
-			paint.fillRect(view.m_backColor, 0, 10 - scrollV + view.m_location.y, rtRight, view.m_size.cy - 10 - scrollV + view.m_location.y)
-		if(view.m_borderColor != "none"):
-			paint.drawRect(view.m_borderColor, 1, 0, 0, 10 - scrollV + view.m_location.y, rtRight, view.m_size.cy - 10 - scrollV + view.m_location.y)
-		rtRight += 10
-		fontSize1 = int(min(view.m_size.cx, view.m_size.cy) / 4);
-		if(fontSize1 > 1):
-			baseUpper = view.m_data["base"].upper()
-			font1 = str(fontSize1) + "px Arial"
-			tSize = paint.textSize(baseUpper, font1)	           
-			quoteUpper = view.m_data["quote"].upper()
-			font2 = str(fontSize1 / 2) + "px Arial"
-			tSize2 = paint.textSize(quoteUpper, font2)
-	            
-			if (view.m_paint.m_defaultUIStyle == "dark"):
-				paint.drawText(baseUpper, "rgb(255,255,255)", font1, rtRight, view.m_size.cy / 2 - tSize.cy + 2 - scrollV + view.m_location.y - tSize.cy / 2)
-				paint.drawText(quoteUpper, "rgb(255,255,255)", font2, rtRight, view.m_size.cy / 2 + 2 - scrollV + view.m_location.y - tSize.cy / 2)
-			elif (view.m_paint.m_defaultUIStyle == "light"):
-				paint.drawText(baseUpper, "rgb(0,0,0)", font1, rtRight, view.m_size.cy / 2 - tSize.cy + 2 - scrollV + view.m_location.y - tSize.cy / 2)
-				paint.drawText(quoteUpper, "rgb(0,0,0)", font2, rtRight, view.m_size.cy / 2 + 2 - scrollV + view.m_location.y - tSize.cy / 2)
-	            
-			strPrice = toFixed(view.m_data["price"], 6)
-			font3 = str(fontSize1 * 2 / 3) + "px Arial"
-			tSize5 = paint.textSize(strPrice, font3)
-			if (view.m_paint.m_defaultUIStyle == "dark"):
-				paint.drawText(strPrice, "rgb(255,255,255)", font3, rtRight, view.m_size.cy / 2 + tSize.cy + 2 - scrollV + view.m_location.y - tSize.cy / 2)
-			elif (view.m_paint.m_defaultUIStyle == "light"):
-				paint.drawText(strPrice, "rgb(0,0,0)", font3, rtRight, view.m_size.cy / 2 + tSize.cy + 2 - scrollV + view.m_location.y - tSize.cy / 2)
-	
-def updateList(dynaList):
-	dynaList.m_rects = []
-	viewsSize = len(dynaList.m_views)
-	for i in range(0, viewsSize):
-		thisCell = dynaList.m_views[i]
-		dynaList.m_rects.append(FCRect(0, i * dynaList.m_itemHeight, dynaList.m_size.cx - dynaList.m_scrollSize, (i + 1) * dynaList.m_itemHeight));
-
-def onListTime(dynaList):
-	paint2 = FALSE
-	if(dynaList.m_useAnimation):
-		for i in range(0, len(dynaList.m_rects)):
-			subView = dynaList.m_views[i]
-			targetRect = dynaList.m_rects[i]
-			nowRect = FCRect(subView.m_location.x, subView.m_location.y, subView.m_location.x + subView.m_size.cx, subView.m_location.y + subView.m_size.cy)
-			isMove = FALSE
-			if (1 == 1):
-				if (nowRect.left > targetRect.left):
-					nowRect.left -= (nowRect.left - targetRect.left) / 4
-					if (nowRect.left - targetRect.left < 10):
-						nowRect.left = targetRect.left
-					paint2 = TRUE
-				elif (nowRect.left < targetRect.left):
-					nowRect.left += (targetRect.left - nowRect.left) / 4
-					if (targetRect.left - nowRect.left < 10):
-						nowRect.left = targetRect.left
-					paint2 = TRUE
-			if (1 == 1):
-				if (nowRect.top > targetRect.top):
-					nowRect.top -= (nowRect.top - targetRect.top) / 4
-					if (nowRect.top - targetRect.top < 10):
-						nowRect.top = targetRect.top
-					paint2 = TRUE
-					isMove = TRUE
-				elif (nowRect.top < targetRect.top):
-					nowRect.top += (targetRect.top - nowRect.top) / 4
-					if (targetRect.top - nowRect.top < 10):
-						nowRect.top = targetRect.top
-					paint2 = TRUE
-			if (1 == 1):
-				if (nowRect.right > targetRect.right):
-					nowRect.right -= (nowRect.right - targetRect.right) / 4
-					if (nowRect.right - targetRect.right < 10):
-						nowRect.right = targetRect.right
-					paint2 = TRUE
-				elif (nowRect.right < targetRect.right):
-					nowRect.right += (targetRect.right - nowRect.right) / 4
-					if (targetRect.right - nowRect.right < 10):
-						nowRect.right = targetRect.right
-					paint2 = TRUE
-			if (1 == 1):
-				if (nowRect.bottom > targetRect.bottom):
-					nowRect.bottom -= (nowRect.bottom - targetRect.bottom) / 4
-					if (nowRect.bottom - targetRect.bottom < 10):
-						nowRect.bottom = targetRect.bottom
-					paint2 = TRUE
-				elif (nowRect.bottom < targetRect.bottom):
-					nowRect.bottom += (targetRect.bottom - nowRect.bottom) / 4
-					if (targetRect.bottom - nowRect.bottom < 10):
-						nowRect.bottom = targetRect.bottom
-					paint2 = TRUE
-			subView.m_isMove = isMove;
-			subView.m_location = FCPoint(nowRect.left, nowRect.top)
-			subView.m_size = FCSize(nowRect.right - nowRect.left, nowRect.bottom - nowRect.top)
-	else:
-		for i in range(0, len(dynaList.m_rects)):
-			subView = dynaList.m_views[i]
-			targetRect = dynaList.m_rects[i]
-			subView.m_location = FCPoint(targetRect.left, targetRect.top)
-			subView.m_size = FCSize(targetRect.right - targetRect.left, targetRect.bottom - targetRect.top)
-	if(paint2):
-		invalidateView(dynaList, dynaList.m_paint)
-
-def on_message(ws, message):
-	global m_list
-	global m_paint
-	global m_listColors
-	newData = json.loads(message)
-	key = newData["base"] + "," + newData["quote"]
-	hasData = FALSE
-	viewsSize = len(m_list.m_views)
-	for i in range(0,viewsSize):
-		thisCell = m_list.m_views[i]
-		if(thisCell.m_key == key):
-			hasData = TRUE
-			thisCell.m_data = newData
-			thisCell.m_value = thisCell.m_value + newData["volume"] * newData["price"]
-			break
-	if(hasData == FALSE):
-		pData = ListData()
-		pData.m_key = key
-		pData.m_text = key
-		pData.m_data = newData
-		pData.m_value = newData["volume"] * newData["price"]
-		pData.m_size = FCSize(m_list.m_size.cx, m_list.m_itemHeight)
-		pData.m_location = FCPoint(0, len(m_list.m_views) * m_list.m_itemHeight)
-		pData.m_firstPrice = newData["price"]
-		pData.m_backColor = m_listColors[len(m_list.m_views) % len(m_listColors)]
-		pData.m_allowDraw = FALSE
-		if (m_list.m_paint.m_defaultUIStyle == "dark"):
-			pData.m_borderColor = "rgb(255,255,255)"
-		elif(m_list.m_paint.m_defaultUIStyle == "light"):
-			pData.m_borderColor = "rgb(0,0,0)"
-		addViewToParent(pData, m_list)
-	totalValue = 0; 
-	viewsSize = len(m_list.m_views)
-	for i in range(0, viewsSize):
-	    thisCell = m_list.m_views[i]
-	    if(totalValue < thisCell.m_value):
-	        totalValue = thisCell.m_value
-	m_list.m_totalValue = totalValue
-	m_list.m_views = sorted(m_list.m_views, key=attrgetter('m_value'), reverse=True)
-
-def on_error(ws, error):
-    print(error)
-
-def on_close(ws, close_status_code, close_msg):
-    print("closed")
-
-def on_open(ws):
-    print("start")
-
-def startWebSocket():
-	websocket.enableTrace(True)
-	ws = websocket.WebSocketApp("wss://ws.coincap.io/trades/binance",
-								on_open=on_open,
-								on_message=on_message,
-								on_error=on_error,
-								on_close=on_close)
-
-	ws.run_forever()
-
 wc = win32gui.WNDCLASS()
 wc.hbrBackground = COLOR_BTNFACE + 1
 wc.hCursor = win32gui.LoadCursor(0,IDI_APPLICATION)
@@ -484,39 +439,66 @@ reg = win32gui.RegisterClass(wc)
 hwnd = win32gui.CreateWindow(reg,'facecat-py',WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN,CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT,0,0,0,None)
 m_paint.m_hWnd = hwnd
 
-m_listColors = []
-m_listColors.append("rgb(59,174,218)")
-m_listColors.append("rgb(185,63,150)")
-m_listColors.append("rgb(219,68,83)")
-m_listColors.append("rgb(246,187,67)")
-m_listColors.append("rgb(216,112,173)")
-m_listColors.append("rgb(140,192,81)")
-m_listColors.append("rgb(233,87,62)")
-m_listColors.append("rgb(150,123,220)")
-m_listColors.append("rgb(75,137,220)")
-m_listColors.append("rgb(170,178,189)")
+m_drawColors = []
+m_drawColors.append("rgb(59,174,218)")
+m_drawColors.append("rgb(185,63,150)")
+m_drawColors.append("rgb(219,68,83)")
+m_drawColors.append("rgb(246,187,67)")
+m_drawColors.append("rgb(216,112,173)")
+m_drawColors.append("rgb(140,192,81)")
+m_drawColors.append("rgb(233,87,62)")
+m_drawColors.append("rgb(150,123,220)")
+m_drawColors.append("rgb(75,137,220)")
+m_drawColors.append("rgb(170,178,189)")
 
-m_list = FCView()
-m_list.m_type = "div"
-m_list.m_name = "list"
-m_list.m_dock = "fill"
-m_list.m_itemHeight = 60
-m_list.m_rects = []
-m_list.m_useAnimation = TRUE
-m_list.m_showVScrollBar = TRUE
-addView(m_list, m_paint)
+m_chart2 = FCChart()
+m_chart2.m_dock = "fill"
+m_chart2.m_leftVScaleWidth = 70
+m_chart2.m_rightVScaleWidth = 0
+m_chart2.m_vScaleDistance = 60
+m_chart2.m_hScalePixel = 11
+m_chart2.m_hScaleHeight = 30
+m_chart2.m_candleDivPercent = 1
+m_chart2.m_volDivPercent = 0
+m_chart2.m_indDivPercent = 0
+m_chart2.m_rightSpace = 50
+m_chart2.m_cycle = "tick"
+m_chart2.m_scaleColor = "rgb(100,100,100)"
+m_chart2.m_crossTipColor = "rgb(50,50,50)"
+m_chart2.m_crossLineColor = "rgb(100,100,100)"
+m_chart2.m_gridColor = "rgba(100,100,100,0.5)"
+m_chart2.m_textColor = "rgb(255,255,255)"
+addView(m_chart2, m_paint)
 
 #检查CTP的数据
 def checkNewData(a='', b=''):
 	global m_paint
-	global m_list
-	updateList(m_list)
-	onListTime(m_list)
+	global m_chart2
+	lastData = None;
+	if(len(m_chart2.m_data) > 1):
+		lastData = m_chart2.m_data[len(m_chart2.m_data) - 1]
+	data = SecurityData()
+	data.m_close = 0
+	data.m_date = len(m_chart2.m_data)
+	data.m_data1 = random.randint(0,100) - 50
+	data.m_data2 = random.randint(0,100) - 50
+	data.m_data3 = random.randint(0,100) - 50
+	data.m_data4 = random.randint(0,100) - 50
+	data.m_data5 = random.randint(0,100) - 50
+	data.m_data6 = random.randint(0,100) - 50
+	if(lastData != None):
+		data.m_data1 = data.m_data1 + lastData.m_data1
+		data.m_data2 = data.m_data2 + lastData.m_data2
+		data.m_data3 = data.m_data3 + lastData.m_data3
+		data.m_data4 = data.m_data4 + lastData.m_data4
+		data.m_data5 = data.m_data5 + lastData.m_data5
+		data.m_data6 = data.m_data6 + lastData.m_data6
+	m_chart2.m_data.append(data)
+	resetChartVisibleRecord(m_chart2)
+	checkChartLastVisibleIndex(m_chart2)
+	onCalculateChartMaxMin(m_chart2)
 	invalidate(m_paint)
 
-def run(*args):
-	startWebSocket()
-thread.start_new_thread(run, ())
 timer.set_timer(50, checkNewData)
 
 rect = win32gui.GetClientRect(hwnd)
