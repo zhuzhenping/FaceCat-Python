@@ -378,6 +378,63 @@ def onViewMouseDown(view, mp, buttons, clicks, delta):
 		view.m_selectShape = ""
 		view.m_selectShapeEx = ""
 		facecat.m_mouseDownPoint_Chart = mp;
+		if(len(m_addingPlot_Chart) > 0):
+			if (mp.y < getCandleDivHeight(view)):
+				touchIndex = getChartIndex(view, mp)
+				if (touchIndex >= view.m_firstVisibleIndex and touchIndex <= view.m_lastVisibleIndex):
+					if(m_addingPlot_Chart == "FiboTimezone"):
+						fIndex = touchIndex
+						fDate = getChartDateByIndex(view, fIndex)
+						y = getCandleDivValue(view, mp)
+						newPlot = FCPlot()
+						if(view.m_paint.m_defaultUIStyle == "light"):
+							newPlot.m_lineColor = "rgb(0,0,0)"
+							newPlot.m_pointColor = "rgba(0,0,0,0.5)"
+						newPlot.m_key1 = fDate
+						newPlot.m_value1 = y
+						newPlot.m_plotType = m_addingPlot_Chart
+						view.m_plots.append(newPlot)
+						view.m_sPlot = selectPlot(view, mp)
+					elif (m_addingPlot_Chart == "Triangle" or m_addingPlot_Chart == "CircumCycle" or m_addingPlot_Chart == "ParalleGram" or m_addingPlot_Chart == "AngleLine" or m_addingPlot_Chart == "Parallel" or m_addingPlot_Chart == "SymmetricTriangle"):
+						eIndex = touchIndex;
+						bIndex = eIndex - 5;
+						if (bIndex >= 0):
+							fDate = getChartDateByIndex(view, bIndex)
+							sDate = getChartDateByIndex(view, eIndex)
+							y = getCandleDivValue(view, mp)
+							newPlot = FCPlot()
+							if(view.m_paint.m_defaultUIStyle == "light"):
+								newPlot.m_lineColor = "rgb(0,0,0)"
+								newPlot.m_pointColor = "rgba(0,0,0,0.5)"
+							newPlot.m_key1 = fDate
+							newPlot.m_value1 = y
+							newPlot.m_key2 = sDate
+							newPlot.m_value2 = y
+							newPlot.m_key3 = sDate
+							newPlot.m_value3 = view.m_candleMin + (view.m_candleMax - view.m_candleMin) / 2
+							newPlot.m_plotType = m_addingPlot_Chart
+							view.m_plots.append(newPlot)
+							view.m_sPlot = selectPlot(view, mp)
+					else:
+						eIndex = touchIndex
+						bIndex = eIndex - 5
+						if (bIndex >= 0):
+							fDate = getChartDateByIndex(view, bIndex)
+							sDate = getChartDateByIndex(view, eIndex)
+							y = getCandleDivValue(view, mp)
+							newPlot = FCPlot()
+							if(view.m_paint.m_defaultUIStyle == "light"):
+								newPlot.m_lineColor = "rgb(0,0,0)"
+								newPlot.m_pointColor = "rgba(0,0,0,0.5)"
+							newPlot.m_key1 = fDate
+							newPlot.m_value1 = y
+							newPlot.m_key2 = sDate
+							newPlot.m_value2 = y
+							newPlot.m_plotType = m_addingPlot_Chart
+							view.m_plots.append(newPlot)
+							view.m_sPlot = selectPlot(view, mp)
+			m_addingPlot_Chart = ""
+		view.m_sPlot = selectPlot(view, mp)
 		if (view.m_sPlot == None):
 			selectShape(view, mp)
 	elif(view.m_type == "div" or view.m_type =="layout"):
@@ -415,6 +472,8 @@ def onViewMouseUp(view, mp, buttons, clicks, delta):
 	elif(view.m_type == "button"):
 		invalidateView(view, view.m_paint)
 
+m_addingPlot_Chart = ""
+
 #视图的鼠标点击方法
 #view 视图
 #mp 坐标
@@ -438,96 +497,36 @@ def onViewClick(view, mp, buttons, clicks, delta):
 			if(tabView.m_tabPages[i].m_headerButton == view):
 				selectTabPage(tabView, tabView.m_tabPages[i])
 		invalidateView(tabView, tabView.m_paint)
+	elif(view.m_type == "plot"):
+		m_addingPlot_Chart = view.m_text
+	elif(view.m_type == "indicator"):
+		m_chart = findViewByName("chart", m_paint.m_views)
+		if (view.m_text == "BOLL" or view.m_text == "MA"):
+			m_chart.m_mainIndicator = view.m_text
+		else:
+			m_chart.m_showIndicator = view.m_text
+		calcChartIndicator(m_chart)
+		invalidateView(m_chart, m_chart.m_paint)
 	if(view.m_name == "Button"):
-		#获取沪深A股最新行情指标
-		df = qs.realtime_data()
-		bindDataFrame(df)
-	elif(view.m_name == "Button2"):
-		#获取可转债最新行情指标
-		df = qs.realtime_data('可转债')
-		bindDataFrame(df)
-	elif(view.m_name == "Button3"):
-		#获取期货最新行情指标
-		df=qs.realtime_data('期货')
-		bindDataFrame(df)
-	elif(view.m_name == "Button4"):
-		#获取美股最新行情指标
-		df = qs.realtime_data('美股')
-		bindDataFrame(df)
-	elif(view.m_name == "Button5"):
-		#获取港股最新行情指标
-		df = qs.realtime_data('港股')
-		bindDataFrame(df)
-	elif(view.m_name == "Button6"):
-		#获取行业板块最新行情指标
-		df = qs.realtime_data('行业板块')
-		bindDataFrame(df)
-	elif(view.m_name == "Button7"):
-		#获取概念板块最新行情指标
-		df = qs.realtime_data('概念板块')
-		bindDataFrame(df)
-	elif(view.m_name == "Button8"):
-		#获取ETF最新行情指标
-		df = qs.realtime_data('ETF')
-		bindDataFrame(df)
-	elif(view.m_name == "Button9"):
-		df = qs.realtime_data(code=['中国平安','300684','锂电池ETF','BK0679','上证指数'])
-		bindDataFrame(df)
-	elif(view.m_name == "Button10"):
-		#股票日内交易数据
-		df = qs.intraday_data('中国平安')
-		bindDataFrame(df)
-	elif(view.m_name == "Button11"):
-		#基金日内交易数据
-		df = qs.intraday_data('有色50ETF')
-		bindDataFrame(df)
-	elif(view.m_name == "Button12"):
-		df = qs.stock_snapshot('中国平安')
-		bindDataFrame(df)
-	elif(view.m_name == "Button13"):
-		#异动类型：火箭发射
-		df = qs.realtime_change(1)
-		bindDataFrame(df)
-	elif(view.m_name == "Button14"):
-		df = qs.stock_billboard('20220901','20221011')
-		bindDataFrame(df)
-	elif(view.m_name == "Button15"):
-		#默认日频率、前复权所有历史数据
-		#open：开盘价，high：最高价，low：最低价，close：收盘价
-		#vol：成交量，turnover：成交金额，turnover_rate:换手率
-		#在notebook上输入"qs.get_data?"可查看数据接口的相应参数
 		df = qs.get_data('601318')
-		bindDataFrame(df)
-	elif(view.m_name == "Button16"):
-		#个股code_list可以输入代码或简称或多个股票的list
-		#获取中国平安2022年9月28日至今的5分钟数据，默认前复权
+		bindChartData(df)
+	elif(view.m_name == "Button2"):
 		df = qs.get_data('中国平安',start='20220928',freq=5)
-		bindDataFrame(df)
-	elif(view.m_name == "Button17"):
-		#后复权数据,频率为周
+		bindChartData(df)
+	elif(view.m_name == "Button3"):
 		df = qs.get_data('中国平安',fqt=2,freq='w')
-		bindDataFrame(df)
-	elif(view.m_name == "Button18"):
+		bindChartData(df)
+	elif(view.m_name == "Button4"):
 		df = qs.get_data('AAPL')
-		bindDataFrame(df)
-	elif(view.m_name == "Button19"):
+		bindChartData(df)
+	elif(view.m_name == "Button5"):
 		df = qs.get_data('棕榈油2302')
-		bindDataFrame(df)
-	elif(view.m_name == "Button20"):
-		code_list=['sh','sz']
+		bindChartData(df)
+	elif(view.m_name == "Button6"):
+		code_list=['sh']
 		df = qs.get_data(code_list)
-		bindDataFrame(df)
-	elif(view.m_name == "Button21"):
-		#全球指数可参见：https://quote.eastmoney.com/center/qqzs.html
-		global_indexs=['道琼斯','标普500','纳斯达克','恒生指数','英国富时','法国CAC40','德国DAX',
-					  '日经225','韩国KOSPI','澳大利亚标普200','印度孟买SENSEX','俄罗斯RTS','加拿大S&P',
-					   '台湾加权','美元指数','路透CRB商品指数']
-		df = qs.get_data(global_indexs)
-		bindDataFrame(df)
-	elif(view.m_name == "Button22"):
-		code_list = ['中国平安','300684','锂电池ETF','BK0679','上证指数']
-		df = qs.get_price(code_list)
-		bindDataFrame(df)
+		bindChartData(df)
+
 		
 
 #视图的鼠标滚动方法
@@ -553,7 +552,111 @@ def onViewMouseWheel(view, mp, buttons, clicks, delta):
 			zoomInChart(view);
 		invalidateView(view, view.m_paint)
 
-m_xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<html xmlns=\"facecat\">\r\n  <head>\r\n  </head>\r\n  <body>\r\n    <div type=\"splitlayout\" layoutstyle=\"lefttoright\" bordercolor=\"none\" dock=\"fill\" size=\"400,400\" candragsplitter=\"true\" splitmode=\"AbsoluteSize\" splittervisible=\"true\" splitter-bordercolor=\"-200000000105\" splitterposition=\"160,1\">\r\n      <div type=\"layout\" name=\"div1\" showvscrollbar=\"true\" layoutstyle=\"TopToBottom\">\r\n        <input type=\"button\" name=\"Button\" text=\"沪深A股\" location=\"55,35\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button2\" text=\"可转债\" location=\"56,57\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button3\" text=\"期货\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button4\" text=\"美股\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button5\" text=\"港股\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button6\" text=\"行业板块\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button7\" text=\"概念板块\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button8\" text=\"ETF\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button9\" text=\"个股行情\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button10\" text=\"股票日内交易\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button11\" text=\"基金日内交易\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button12\" text=\"个股交易快照\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button13\" text=\"实时盘口\" location=\"66,156\" size=\"200,40\" />\r\n<input type=\"button\" name=\"Button14\" text=\"龙虎榜数据\" location=\"66,156\" size=\"200,40\" />\r\n<input type=\"button\" name=\"Button15\" text=\"日K线\" location=\"66,156\" size=\"200,40\" />\r<input type=\"button\" name=\"Button16\" text=\"5分钟线\" location=\"66,156\" size=\"200,40\" />\r\n<input type=\"button\" name=\"Button17\" text=\"后复权数据\" location=\"66,156\" size=\"200,40\" />\r<input type=\"button\" name=\"Button18\" text=\"美股K线\" location=\"66,156\" size=\"200,40\" />\r\n<input type=\"button\" name=\"Button19\" text=\"期货K线\" location=\"66,156\" size=\"200,40\" />\r<input type=\"button\" name=\"Button20\" text=\"指数历史数据\" location=\"66,156\" size=\"200,40\" />\r\n<input type=\"button\" name=\"Button21\" text=\"全球指数\" location=\"66,156\" size=\"200,40\" />\r\n<input type=\"button\" name=\"Button22\" text=\"多只证券历史数据\" location=\"66,156\" size=\"200,40\" />\r\r\n      </div>\r\n      <table name=\"grid\" />\r\n    </div>\r\n  </body>\r\n</html>"
+#初始化K线
+def initChart():
+	global m_paint
+	m_chart = findViewByName("chart", m_paint.m_views)
+	m_layout = findViewByName("divLayout", m_paint.m_views)
+	m_chart.m_leftVScaleWidth = 80
+	m_chart.m_textColor = "rgb(255,255,255)"
+	m_chart.m_mainIndicator = "MA" 
+	m_chart.m_showIndicator = "MACD" 
+	m_layout.m_showHScrollBar = TRUE
+	m_layout.m_showVScrollBar = TRUE
+	m_layout.m_allowDragScroll = TRUE
+	m_layout.m_scrollSize = 0
+	plots = []
+	plots.append("Line")
+	plots.append("Segment")
+	plots.append("Ray")
+	plots.append("Triangle")
+	plots.append("Rect")
+	plots.append("Cycle")
+	plots.append("CircumCycle")
+	plots.append("Ellipse")
+	plots.append("AngleLine")
+	plots.append("ParalleGram")
+	plots.append("SpeedResist")
+	plots.append("FiboFanline")
+	plots.append("FiboTimezone")
+	plots.append("Percent")
+	plots.append("BoxLine")
+	plots.append("TironeLevels")
+	plots.append("Parallel")
+	plots.append("GoldenRatio")
+	plots.append("LRLine")
+	plots.append("LRChannel")
+	plots.append("LRBand")
+	for i in range(0, len(plots)):
+		subView = FCView()
+		subView.m_type = "plot"
+		subView.m_text = plots[i]
+		subView.m_name = plots[i]
+		subView.m_location = FCPoint(i * 100 + 1, 1)
+		subView.m_size = FCSize(98, 28)
+		addViewToParent(subView, m_layout)
+		subView.m_allowDrag = TRUE
+		if(subView.m_paint.m_defaultUIStyle == "dark"):
+			subView.m_backColor = "rgb(0,0,0)"
+			subView.m_borderColor = "rgb(100,100,100)"
+			subView.m_textColor = "rgb(255,255,255)"
+		elif(subView.m_paint.m_defaultUIStyle == "light"):
+			subView.m_backColor = "rgb(255,255,255)"
+			subView.m_borderColor = "rgb(150,150,150)"
+			subView.m_textColor = "rgb(0,0,0)"
+	indicators = []
+	indicators.append("MA")
+	indicators.append("BOLL")
+	indicators.append("MACD")
+	indicators.append("KDJ")
+	indicators.append("BIAS")
+	indicators.append("ROC")
+	indicators.append("WR")
+	indicators.append("DMA")
+	indicators.append("RSI")
+	indicators.append("BBI")
+	indicators.append("CCI")
+	indicators.append("TRIX")
+	for i in range(0, len(indicators)):
+		subView = FCView()
+		subView.m_type = "indicator"
+		subView.m_text = indicators[i]
+		subView.m_name = indicators[i]
+		subView.m_location = FCPoint(i * 100 + 1, 30)
+		subView.m_size = FCSize(98, 28)
+		addViewToParent(subView, m_layout)
+		subView.m_allowDrag = TRUE
+		m_layout.m_views.append(subView)
+		if(subView.m_paint.m_defaultUIStyle == "dark"):
+			subView.m_backColor = "rgb(0,0,0)"
+			subView.m_borderColor = "rgb(100,100,100)"
+			subView.m_textColor = "rgb(255,255,255)"
+		elif(subView.m_paint.m_defaultUIStyle == "light"):
+			subView.m_backColor = "rgb(255,255,255)"
+			subView.m_borderColor = "rgb(150,150,150)"
+			subView.m_textColor = "rgb(0,0,0)"
+
+#绑定K线数据
+def bindChartData(df):
+	global m_paint
+	m_chart = findViewByName("chart", m_paint.m_views)
+	clearDataArr(m_chart)
+	m_chart.m_data = []
+	m_chart.m_firstVisibleIndex = -1
+	m_chart.m_lastVisibleIndex = -1
+	for i in range(0, len(df)):
+		data = SecurityData()
+		data.m_date = i
+		data.m_close = float(df.iloc[i]["close"])
+		data.m_high = float(df.iloc[i]["high"])
+		data.m_low = float(df.iloc[i]["low"])
+		data.m_open = float(df.iloc[i]["open"])
+		data.m_volume = float(df.iloc[i]["volume"])
+		m_chart.m_data.append(data)
+	calcChartIndicator(m_chart)
+	invalidateView(m_chart, m_chart.m_paint)
+
+m_xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<html xmlns=\"facecat\">\r\n  <head>\r\n  </head>\r\n  <body>\r\n    <div type=\"splitlayout\" layoutstyle=\"lefttoright\" bordercolor=\"none\" dock=\"fill\" size=\"400,400\" candragsplitter=\"true\" splitmode=\"AbsoluteSize\" splittervisible=\"true\" splitter-bordercolor=\"-200000000105\" splitterposition=\"160,1\">\r\n      <div type=\"layout\" name=\"div1\" layoutstyle=\"TopToBottom\">\r\n        <input type=\"button\" name=\"Button\" text=\"日K线\" location=\"55,35\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button2\" text=\"5分钟线\" location=\"56,57\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button3\" text=\"后复权\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button4\" text=\"美股K线\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button5\" text=\"期货K线\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button6\" text=\"指数K线\" location=\"66,156\" size=\"200,40\" />\r\n      </div>\r\n      <div type=\"splitlayout\" layoutstyle=\"bottomtotop\" bordercolor=\"none\" splitterposition=\"340,1\" dock=\"fill\" size=\"400,400\" candragsplitter=\"true\">\r\n        <div name=\"divLayout\" bordercolor=\"none\" />\r\n        <chart name=\"chart\" bordercolor=\"none\" />\r\n      </div>\r\n    </div>\r\n  </body>\r\n</html>"
 
 m_paint = FCPaint() #创建绘图对象
 facecat.m_paintCallBack = onViewPaint 
@@ -624,71 +727,18 @@ wc.lpfnWndProc = WndProc
 reg = win32gui.RegisterClass(wc)
 hwnd = win32gui.CreateWindow(reg,'facecat-py',WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN,CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT,0,0,0,None)
 m_paint.m_hWnd = hwnd
-
-#创建列
-#grid:表格
-def createGridColumn(grid):
-	gridColumn = FCGridColumn()
-	if (grid.m_paint.m_defaultUIStyle == "dark"):
-		gridColumn.m_backColor = "rgb(0,0,0)"
-		gridColumn.m_borderColor = "rgb(150,150,150)"
-		gridColumn.m_textColor = "rgb(255,255,255)"
-	elif (grid.m_paint.m_defaultUIStyle == "light"):
-		gridColumn.m_backColor = "rgb(200,200,200)"
-		gridColumn.m_borderColor = "rgb(100,100,100)"
-		gridColumn.m_textColor = "rgb(0,0,0)"
-	return gridColumn
-    
-#创建列
-#grid:表格
-def createGridCell(grid):
-	gridCell = FCGridCell()
-	if (grid.m_paint.m_defaultUIStyle == "dark"):
-		gridCell.m_backColor = "rgb(0,0,0)"
-		gridCell.m_borderColor = "rgb(150,150,150)"
-		gridCell.m_textColor = "rgb(255,255,255)"
-	elif (grid.m_paint.m_defaultUIStyle == "light"):
-		gridCell.m_backColor = "rgb(255,255,255)"
-		gridCell.m_borderColor = "rgb(100,100,100)"
-		gridCell.m_textColor = "rgb(0,0,0)"
-	return gridCell
-
-#绑定数据
-def bindDataFrame(df):
-	global m_paint
-	grid = findViewByName("grid", m_paint.m_views)
-	grid.m_columns = []
-	grid.m_rows = []
-	for i in range(0,len(df.columns)):
-		column1 = createGridColumn(grid)
-		column1.m_text = df.columns[i]
-		column1.m_width = 100
-		grid.m_columns.append(column1)
-	for i in range(0, len(df)):
-		row = FCGridRow()
-		grid.m_rows.append(row)
-		for c in range(0, len(grid.m_columns)):
-			cell = FCGridCell()
-			if (grid.m_paint.m_defaultUIStyle == "dark"):
-				cell.m_backColor = "rgb(0,0,0)"
-			elif(grid.m_paint.m_defaultUIStyle == "light"):
-				cell.m_backColor = "rgb(255,255,255)"
-			cell.m_value = df.iloc[i][df.columns[c]]
-			row.m_cells.append(cell)
-	invalidateView(grid, grid.m_paint)
-
 root = ET.fromstring(m_xml)
 for child in root:
 	if(child.tag == "{facecat}body"):
 		readXmlNode(m_paint, child, None)
-#获取沪深A股最新行情指标
-df = qs.realtime_data('可转债')
-bindDataFrame(df)
 rect = win32gui.GetClientRect(hwnd)
 m_paint.m_size = FCSize(rect[2] - rect[0], rect[3] - rect[1])
 for view in m_paint.m_views:
 	if view.m_dock == "fill":
 		view.m_size = FCSize(m_paint.m_size.cx, m_paint.m_size.cy)
+initChart()
+df = qs.get_data('601318')
+bindChartData(df)
 updateView(m_paint.m_views)
 win32gui.ShowWindow(hwnd,SW_SHOWNORMAL)
 win32gui.UpdateWindow(hwnd)

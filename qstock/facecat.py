@@ -909,11 +909,11 @@ def findView(mp, views):
 		view = views[size - i - 1]
 		if(view.m_visible and view.m_topMost):
 			if(containsPoint(view, mp)):
-				if(view.m_showHScrollBar and view.m_scrollSize > 0):
+				if(view.m_showVScrollBar and view.m_scrollSize > 0):
 					clx = clientX(view)
 					if(mp.x >= clx + view.m_size.cx - view.m_scrollSize):
 						return view
-				if(view.m_showVScrollBar and view.m_scrollSize > 0):
+				if(view.m_showHScrollBar and view.m_scrollSize > 0):
 					cly = clientY(view);
 					if(mp.y >= cly + view.m_size.cy - view.m_scrollSize):
 						return view
@@ -927,11 +927,11 @@ def findView(mp, views):
 		view = views[size - i - 1]
 		if(view.m_visible and view.m_topMost == FALSE):
 			if(containsPoint(view, mp)):
-				if(view.m_showHScrollBar and view.m_scrollSize > 0):
+				if(view.m_showVScrollBar and view.m_scrollSize > 0):
 					clx = clientX(view)
 					if(mp.x >= clx + view.m_size.cx - view.m_scrollSize):
 						return view
-				if(view.m_showVScrollBar and view.m_scrollSize > 0):
+				if(view.m_showHScrollBar and view.m_scrollSize > 0):
 					cly = clientY(view);
 					if(mp.y >= cly + view.m_size.cy - view.m_scrollSize):
 						return view

@@ -60,16 +60,22 @@ def setAttribute(view, child):
 				lowerStr = value.lower()
 				if(lowerStr.find("rgb") == 0):
 					view.m_backColor = value
+				else:
+					view.m_backColor = "none"
 			elif(name == "bordercolor"):
 				lowerStr = value.lower()
 				if(lowerStr.find("rgb") == 0):
 					view.m_borderColor = value
+				else:
+					view.m_borderColor = "none"
 			elif(name == "textcolor"):
 				lowerStr = value.lower()
 				if(lowerStr.find("rgb") == 0):
 					view.m_textColor = value
+				else:
+					view.m_textColor = "none"
 			elif(name == "layoutstyle"):
-				view.m_layoutStyle = value
+				view.m_layoutStyle = value.lower()
 			elif(name == "dock"):
 				view.m_dock = value;
 			elif(name == "font"):
@@ -80,7 +86,7 @@ def setAttribute(view, child):
 			elif(name == "headerheight"):
 				view.m_headerHeight = float(value)
 			elif(name == "splitmode"):
-				view.m_splitMode = value
+				view.m_splitMode = value.lower()
 			elif(name == "autowrap"):
 				view.m_autoWrap = (value.lower() == "true")
 			elif(name == "name"):
