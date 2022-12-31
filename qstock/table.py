@@ -15,6 +15,8 @@ from requests.adapters import HTTPAdapter
 from facecat import *
 import facecat
 import qstock as qs
+#pip install qstock
+#https://mp.weixin.qq.com/s/Ivue6tCQaH3RvD9u0Yy2pA
 
 #更新悬浮状态
 #views:视图集合
@@ -438,59 +440,73 @@ def onViewClick(view, mp, buttons, clicks, delta):
 			if(tabView.m_tabPages[i].m_headerButton == view):
 				selectTabPage(tabView, tabView.m_tabPages[i])
 		invalidateView(tabView, tabView.m_paint)
+	#沪深A股
 	if(view.m_name == "Button"):
-		#获取沪深A股最新行情指标
 		df = qs.realtime_data()
 		bindDataFrame(df)
+	#可转债
 	elif(view.m_name == "Button2"):
 		#获取可转债最新行情指标
 		df = qs.realtime_data('可转债')
 		bindDataFrame(df)
+	#期货
 	elif(view.m_name == "Button3"):
 		#获取期货最新行情指标
-		df=qs.realtime_data('期货')
+		df = qs.realtime_data('期货')
 		bindDataFrame(df)
+	#美股
 	elif(view.m_name == "Button4"):
 		#获取美股最新行情指标
 		df = qs.realtime_data('美股')
 		bindDataFrame(df)
+	#港股
 	elif(view.m_name == "Button5"):
 		#获取港股最新行情指标
 		df = qs.realtime_data('港股')
 		bindDataFrame(df)
+	#行业板块
 	elif(view.m_name == "Button6"):
 		#获取行业板块最新行情指标
 		df = qs.realtime_data('行业板块')
 		bindDataFrame(df)
+	#概念板块
 	elif(view.m_name == "Button7"):
 		#获取概念板块最新行情指标
 		df = qs.realtime_data('概念板块')
 		bindDataFrame(df)
+	#ETF
 	elif(view.m_name == "Button8"):
 		#获取ETF最新行情指标
 		df = qs.realtime_data('ETF')
 		bindDataFrame(df)
+	#个股行情
 	elif(view.m_name == "Button9"):
 		df = qs.realtime_data(code=['中国平安','300684','锂电池ETF','BK0679','上证指数'])
 		bindDataFrame(df)
+	#股票日内交易
 	elif(view.m_name == "Button10"):
 		#股票日内交易数据
 		df = qs.intraday_data('中国平安')
 		bindDataFrame(df)
+	#基金日内交易
 	elif(view.m_name == "Button11"):
 		#基金日内交易数据
 		df = qs.intraday_data('有色50ETF')
 		bindDataFrame(df)
+	#个股交易快照
 	elif(view.m_name == "Button12"):
 		df = qs.stock_snapshot('中国平安')
 		bindDataFrame(df)
+	#实时盘口
 	elif(view.m_name == "Button13"):
 		#异动类型：火箭发射
 		df = qs.realtime_change(1)
 		bindDataFrame(df)
+	#龙虎榜数据
 	elif(view.m_name == "Button14"):
 		df = qs.stock_billboard('20220901','20221011')
 		bindDataFrame(df)
+	#日K线
 	elif(view.m_name == "Button15"):
 		#默认日频率、前复权所有历史数据
 		#open：开盘价，high：最高价，low：最低价，close：收盘价
@@ -498,25 +514,31 @@ def onViewClick(view, mp, buttons, clicks, delta):
 		#在notebook上输入"qs.get_data?"可查看数据接口的相应参数
 		df = qs.get_data('601318')
 		bindDataFrame(df)
+	#5分钟线
 	elif(view.m_name == "Button16"):
 		#个股code_list可以输入代码或简称或多个股票的list
 		#获取中国平安2022年9月28日至今的5分钟数据，默认前复权
 		df = qs.get_data('中国平安',start='20220928',freq=5)
 		bindDataFrame(df)
+	#后复权数据
 	elif(view.m_name == "Button17"):
 		#后复权数据,频率为周
 		df = qs.get_data('中国平安',fqt=2,freq='w')
 		bindDataFrame(df)
+	#美股K线
 	elif(view.m_name == "Button18"):
 		df = qs.get_data('AAPL')
 		bindDataFrame(df)
+	#期货K线
 	elif(view.m_name == "Button19"):
 		df = qs.get_data('棕榈油2302')
 		bindDataFrame(df)
+	#指数历史数据
 	elif(view.m_name == "Button20"):
 		code_list=['sh','sz']
 		df = qs.get_data(code_list)
 		bindDataFrame(df)
+	#全球指数
 	elif(view.m_name == "Button21"):
 		#全球指数可参见：https://quote.eastmoney.com/center/qqzs.html
 		global_indexs=['道琼斯','标普500','纳斯达克','恒生指数','英国富时','法国CAC40','德国DAX',
@@ -524,9 +546,203 @@ def onViewClick(view, mp, buttons, clicks, delta):
 					   '台湾加权','美元指数','路透CRB商品指数']
 		df = qs.get_data(global_indexs)
 		bindDataFrame(df)
+	#多只证券历史数据
 	elif(view.m_name == "Button22"):
 		code_list = ['中国平安','300684','锂电池ETF','BK0679','上证指数']
 		df = qs.get_price(code_list)
+		bindDataFrame(df)
+	#上证50成份股
+	elif(view.m_name == "Button23"):
+		df = qs.index_member('sz50')
+		bindDataFrame(df)
+	#沪深300成分股
+	elif(view.m_name == "Button24"):
+		df = qs.index_member('hs300')
+		bindDataFrame(df)
+	#概念板块名称
+	elif(view.m_name == "Button25"):
+		name_list=qs.ths_index_name('行业')
+		print(name_list)
+	#概念板块成分股
+	elif(view.m_name == "Button26"):
+		#种植业与林业成分股
+		df = qs.ths_index_member('种植业与林业')
+		bindDataFrame(df)
+	#概念指数行情数据
+	elif(view.m_name == "Button27"):
+		df = qs.ths_index_data('有机硅概念')
+		bindDataFrame(df)
+	#日内资金流数据
+	elif(view.m_name == "Button28"):
+		#注意要在交易日交易时段才能获取到相应数据
+		df = qs.intraday_money('中国平安')
+		bindDataFrame(df)
+	#历史资金流向数据
+	elif(view.m_name == "Button29"):
+		df = qs.hist_money('中国平安')
+		bindDataFrame(df)
+	#个股n日资金流
+	elif(view.m_name == "Button30"):
+		#默认ndays=[3, 5, 10, 20]
+		df = qs.stock_money('中国平安')
+		bindDataFrame(df)
+	#同花顺个股20日资金流数据
+	elif(view.m_name == "Button31"):
+		df = qs.ths_money('个股',n=20)
+		bindDataFrame(df)
+	#同花顺行业板块10日资金流数据
+	elif(view.m_name == "Button32"):
+		df = qs.ths_money('行业',n=10)
+		bindDataFrame(df)
+	#概念板块5日资金流数据
+	elif(view.m_name == "Button33"):
+		df = qs.ths_money('概念',n=5)
+		bindDataFrame(df)
+	#北向资金每日净流入数据
+	elif(view.m_name == "Button34"):
+		df = qs.north_money()
+		bindDataFrame(df)
+	#北向资金增持行业板块
+	elif(view.m_name == "Button35"):
+		df = qs.north_money('行业',5)
+		bindDataFrame(df)
+	#北向资金增持概念板块
+	elif(view.m_name == "Button36"):
+		df = qs.north_money('概念',5)
+		bindDataFrame(df)
+	#北向资金增持个股情况
+	elif(view.m_name == "Button37"):
+		#有个小bug，列名没有对应起来，该函数调用将报错，将在新版本中修正。
+		df = qs.north_money('个股',5)
+		bindDataFrame(df)
+	#股票前十大股东信息
+	elif(view.m_name == "Button38"):
+		df = qs.stock_holder_top10('中国平安', n=2)
+		bindDataFrame(df)
+	#沪深个股股东数量
+	elif(view.m_name == "Button39"):
+		df = qs.stock_holder_num('20220930')
+		bindDataFrame(df)
+	#大股东增减持变动明细
+	elif(view.m_name == "Button40"):
+		df = qs.stock_holder_change()
+		bindDataFrame(df)
+	#机构持股
+	elif(view.m_name == "Button41"):
+		#2022年2季度
+		df = qs.institute_hold('20222')
+		bindDataFrame(df)
+	#主营业务收入数据
+	elif(view.m_name == "Button42"):
+		df = qs.main_business('丰元股份')
+		bindDataFrame(df)
+	#业绩报表
+	elif(view.m_name == "Button43"):
+		df = qs.financial_statement('业绩报表',date='20220930')
+		bindDataFrame(df)
+	#业绩报表
+	elif(view.m_name == "Button44"):
+		df = qs.financial_statement('yjyg')
+		bindDataFrame(df)
+	#业绩快报
+	elif(view.m_name == "Button45"):
+		df = qs.financial_statement('yjkb')
+		bindDataFrame(df)
+	#资产负债表
+	elif(view.m_name == "Button46"):
+		df = qs.financial_statement('资产负债表')
+		bindDataFrame(df)
+	#利润表
+	elif(view.m_name == "Button47"):
+		df = qs.financial_statement('利润表')
+		bindDataFrame(df)
+	#现金流量表
+	elif(view.m_name == "Button48"):
+		df = qs.financial_statement('现金流量表')
+		bindDataFrame(df)
+	#个股基本财务指标
+	elif(view.m_name == "Button49"):
+		code_list = ['300139','中国平安','西部建设','贵州茅台','丰元股份','002432']
+		df = qs.stock_basics(code_list)
+		bindDataFrame(df)
+	#个股详细财务指标
+	elif(view.m_name == "Button50"):
+		df = qs.stock_indicator('中国平安')
+		bindDataFrame(df)
+	#每股收益预测
+	elif(view.m_name == "Button51"):
+		df = qs.eps_forecast()
+		bindDataFrame(df)
+	#GDP数据
+	elif(view.m_name == "Button52"):
+		df = qs.macro_data('gdp')
+		bindDataFrame(df)
+	#CPI物价指数
+	elif(view.m_name == "Button53"):
+		df = qs.macro_data('cpi')
+		bindDataFrame(df)
+	#PPI价格指数
+	elif(view.m_name == "Button54"):
+		df = qs.macro_data('ppi')
+		bindDataFrame(df)
+	#PML采购经理人指数
+	elif(view.m_name == "Button55"):
+		df = qs.macro_data('pmi')
+		bindDataFrame(df)
+	#货币供应量
+	elif(view.m_name == "Button56"):
+		df = qs.macro_data('ms')
+		bindDataFrame(df)
+	#贷款基准利率LPR
+	elif(view.m_name == "Button57"):
+		df = qs.macro_data('lpr')
+		bindDataFrame(df)
+	#上海银行同业拆借市场
+	elif(view.m_name == "Button58"):
+		#默认输出上海银行同业拆借市场利率
+		#或输入market='sh'
+		df = qs.ib_rate()
+		bindDataFrame(df)
+	#中国银行同业拆借市场
+	elif(view.m_name == "Button59"):
+		df = qs.ib_rate(market='ch')
+		bindDataFrame(df)
+	#伦敦银行同业拆借市场
+	elif(view.m_name == "Button60"):
+		#伦敦简称l，注意是英文字母‘l’(London的首字母小写)，不是数字1！
+		#币种可选GBP'英镑',USD'美元',EUR'欧元',JPY'日元'
+		df = qs.ib_rate(market='l',fc='GBP')
+		bindDataFrame(df)
+	#欧洲银行同业拆借市场
+	elif(view.m_name == "Button61"):
+		df = qs.ib_rate('eu')
+		bindDataFrame(df)
+	#香港银行同业拆借市场
+	elif(view.m_name == "Button62"):
+		df = qs.ib_rate('hk','HKD')
+		bindDataFrame(df)
+	#新加坡市场
+	elif(view.m_name == "Button63"):
+		df = qs.ib_rate('s','usd')
+		bindDataFrame(df)
+	#财联社电报新闻数据
+	elif(view.m_name == "Button64"):
+		#默认参数输出财联社电报新闻数据
+		df = qs.news_data()
+		bindDataFrame(df)
+	#市场快讯数据
+	elif(view.m_name == "Button65"):
+		df = qs.news_data('js')
+		bindDataFrame(df)
+	#新闻联播
+	elif(view.m_name == "Button66"):
+		#参数start起始日期，end结束日期，使用默认参数输出最新日期新闻联播
+		df = qs.news_data('cctv',start='20221016',end='20221016')
+		bindDataFrame(df)
+	#个股新闻
+	elif(view.m_name == "Button67"):
+		#使用新闻统一接口
+		df = qs.news_data('个股',code='天瑞仪器')
 		bindDataFrame(df)
 		
 
@@ -553,7 +769,7 @@ def onViewMouseWheel(view, mp, buttons, clicks, delta):
 			zoomInChart(view);
 		invalidateView(view, view.m_paint)
 
-m_xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<html xmlns=\"facecat\">\r\n  <head>\r\n  </head>\r\n  <body>\r\n    <div type=\"splitlayout\" layoutstyle=\"lefttoright\" bordercolor=\"none\" dock=\"fill\" size=\"400,400\" candragsplitter=\"true\" splitmode=\"AbsoluteSize\" splittervisible=\"true\" splitter-bordercolor=\"-200000000105\" splitterposition=\"160,1\">\r\n      <div type=\"layout\" name=\"div1\" showvscrollbar=\"true\" layoutstyle=\"TopToBottom\">\r\n        <input type=\"button\" name=\"Button\" text=\"沪深A股\" location=\"55,35\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button2\" text=\"可转债\" location=\"56,57\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button3\" text=\"期货\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button4\" text=\"美股\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button5\" text=\"港股\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button6\" text=\"行业板块\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button7\" text=\"概念板块\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button8\" text=\"ETF\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button9\" text=\"个股行情\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button10\" text=\"股票日内交易\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button11\" text=\"基金日内交易\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button12\" text=\"个股交易快照\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button13\" text=\"实时盘口\" location=\"66,156\" size=\"200,40\" />\r\n<input type=\"button\" name=\"Button14\" text=\"龙虎榜数据\" location=\"66,156\" size=\"200,40\" />\r\n<input type=\"button\" name=\"Button15\" text=\"日K线\" location=\"66,156\" size=\"200,40\" />\r<input type=\"button\" name=\"Button16\" text=\"5分钟线\" location=\"66,156\" size=\"200,40\" />\r\n<input type=\"button\" name=\"Button17\" text=\"后复权数据\" location=\"66,156\" size=\"200,40\" />\r<input type=\"button\" name=\"Button18\" text=\"美股K线\" location=\"66,156\" size=\"200,40\" />\r\n<input type=\"button\" name=\"Button19\" text=\"期货K线\" location=\"66,156\" size=\"200,40\" />\r<input type=\"button\" name=\"Button20\" text=\"指数历史数据\" location=\"66,156\" size=\"200,40\" />\r\n<input type=\"button\" name=\"Button21\" text=\"全球指数\" location=\"66,156\" size=\"200,40\" />\r\n<input type=\"button\" name=\"Button22\" text=\"多只证券历史数据\" location=\"66,156\" size=\"200,40\" />\r\r\n      </div>\r\n      <table name=\"grid\" />\r\n    </div>\r\n  </body>\r\n</html>"
+m_xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<html xmlns=\"facecat\">\r\n  <head>\r\n  </head>\r\n  <body>\r\n    <div type=\"splitlayout\" layoutstyle=\"lefttoright\" bordercolor=\"none\" dock=\"fill\" size=\"400,400\" candragsplitter=\"true\" splitmode=\"AbsoluteSize\" splittervisible=\"true\" splitter-bordercolor=\"-200000000105\" splitterposition=\"200,1\">\r\n      <div type=\"layout\" name=\"div1\" showvscrollbar=\"true\" layoutstyle=\"TopToBottom\">\r\n        <input type=\"button\" name=\"Button\" text=\"沪深A股\" location=\"55,35\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button2\" text=\"可转债\" location=\"56,57\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button3\" text=\"期货\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button4\" text=\"美股\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button5\" text=\"港股\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button6\" text=\"行业板块\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button7\" text=\"概念板块\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button8\" text=\"ETF\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button9\" text=\"个股行情\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button10\" text=\"股票日内交易\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button11\" text=\"基金日内交易\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button12\" text=\"个股交易快照\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button13\" text=\"实时盘口\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button14\" text=\"龙虎榜数据\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button15\" text=\"日K线\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button16\" text=\"5分钟线\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button17\" text=\"后复权数据\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button18\" text=\"美股K线\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button19\" text=\"期货K线\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button20\" text=\"指数历史数据\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button21\" text=\"全球指数\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button22\" text=\"多只证券历史数据\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button23\" text=\"上证50成份股\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button24\" text=\"沪深300成分股\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button25\" text=\"概念板块名称\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button26\" text=\"概念板块成分股\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button27\" text=\"概念指数行情数据\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button28\" text=\"日内资金流数据\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button29\" text=\"历史资金流向数据\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button30\" text=\"个股n日资金流\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button31\" text=\"同花顺个股20日资金流数据\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button32\" text=\"同花顺行业板块10日资金流数据\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button33\" text=\"概念板块5日资金流数据\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button34\" text=\"北向资金每日净流入\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button35\" text=\"北向资金增持行业板块\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button36\" text=\"北向资金增持概念板块\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button37\" text=\"北向资金增持个股情况\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button38\" text=\"股票前十大股东信息\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button39\" text=\"沪深个股股东数量\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button40\" text=\"大股东增减持变动明细\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button41\" text=\"机构持股\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button42\" text=\"主营业务收入数据\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button43\" text=\"业绩报表\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button44\" text=\"业绩预告\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button45\" text=\"业绩快报\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button46\" text=\"资产负债表\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button47\" text=\"利润表\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button48\" text=\"现金流量表\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button49\" text=\"个股基本财务指标\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button50\" text=\"个股详细财务指标\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button51\" text=\"每股收益预测\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button52\" text=\"GDP数据\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button53\" text=\"CPI物价指数\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button54\" text=\"PPI价格指数\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button55\" text=\"PML采购经理人指数\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button56\" text=\"货币供应量\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button57\" text=\"贷款基准利率LPR\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button58\" text=\"上海银行同业拆借市场\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button59\" text=\"中国银行同业拆借市场\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button60\" text=\"伦敦银行同业拆借市场\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button61\" text=\"欧洲银行同业拆借市场\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button62\" text=\"香港银行同业拆借市场\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button63\" text=\"新加坡市场\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button64\" text=\"财联社电报新闻数据\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button65\" text=\"市场快讯数据\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button66\" text=\"新闻联播\" location=\"66,156\" size=\"200,40\" />\r\n        <input type=\"button\" name=\"Button67\" text=\"个股新闻\" location=\"66,156\" size=\"200,40\" />\r\n      </div>\r\n      <table name=\"grid\" />\r\n    </div>\r\n  </body>\r\n</html>"
 
 m_paint = FCPaint() #创建绘图对象
 facecat.m_paintCallBack = onViewPaint 
