@@ -357,11 +357,13 @@ def testDiv4():
 	line2.m_divIndex = 3
 	line2.m_name = "line2"
 	line2.m_title = "B"
+	line2.m_type = "bar"
 	m_chart.m_shapes.append(line1)
 	m_chart.m_shapes.append(line2)
 	for i in range(0, len(m_chart.m_data)):
-		line1.m_datas.append(m_chart.m_data[i].m_high)
+		line1.m_datas.append(m_chart.m_data[i].m_close)
 		line2.m_datas.append(m_chart.m_data[i].m_low)
+		line2.m_datas2.append(m_chart.m_data[i].m_high)
 	
 
 wc = win32gui.WNDCLASS()

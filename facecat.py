@@ -647,6 +647,7 @@ class BaseShape(object):
 		self.m_type = "line" #类型
 		self.m_lineWidth = 1 #线的宽度
 		self.m_color = "none" #颜色
+		self.m_color2 = "none" #颜色2
 		self.m_datas = [] #第一组数据
 		self.m_datas2 = [] #第二组数据
 		self.m_title = "" #第一个标题
@@ -5724,10 +5725,20 @@ def drawChartStock(chart, paint, clipRect):
 	if(len(chart.m_shapes) > 0):
 		for i in range(0, len(chart.m_shapes)):
 			shape = chart.m_shapes[i]
-			if(chart.m_selectShape == shape.m_name):
-				drawChartLines(chart, paint, clipRect, shape.m_divIndex, shape.m_datas, shape.m_color, TRUE)
+			if(shape.m_type == "bar"):
+				for i in range(chart.m_firstVisibleIndex,lastValidIndex + 1):
+					x = getChartX(chart, i)
+					y1 = getChartY(chart, shape.m_divIndex, shape.m_datas[i])
+					y2 = getChartY(chart, shape.m_divIndex, shape.m_datas2[i])
+					if(y1 >= y2):
+						paint.fillRect(shape.m_color, x - cWidth, y2, x + cWidth, y1)
+					else:
+						paint.fillRect(shape.m_color, x - cWidth, y1, x + cWidth, y2)
 			else:
-				drawChartLines(chart, paint, clipRect, shape.m_divIndex, shape.m_datas, shape.m_color, FALSE)
+				if(chart.m_selectShape == shape.m_name):
+					drawChartLines(chart, paint, clipRect, shape.m_divIndex, shape.m_datas, shape.m_color, TRUE)
+				else:
+					drawChartLines(chart, paint, clipRect, shape.m_divIndex, shape.m_datas, shape.m_color, FALSE)
 
 
 m_paintChartScale = None #绘制坐标轴回调
