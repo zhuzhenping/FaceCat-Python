@@ -340,6 +340,30 @@ def WndProc(hwnd,msg,wParam,lParam):
 			invalidate(m_paint)
 	return win32gui.DefWindowProc(hwnd,msg,wParam,lParam)
 
+#测试第四个层
+def testDiv4():
+	global m_chart
+	m_chart.m_candleDivPercent = 0.3
+	m_chart.m_volDivPercent = 0.2
+	m_chart.m_indDivPercent = 0.25
+	m_chart.m_indDivPercent2 = 0.25
+	line1 = BaseShape()
+	line1.m_color = "rgb(255,0,0)"
+	line1.m_divIndex = 3
+	line1.m_name = "line1"
+	line1.m_title = "A"
+	line2 = BaseShape()
+	line2.m_color = "rgb(0,255,0)"
+	line2.m_divIndex = 3
+	line2.m_name = "line2"
+	line2.m_title = "B"
+	m_chart.m_shapes.append(line1)
+	m_chart.m_shapes.append(line2)
+	for i in range(0, len(m_chart.m_data)):
+		line1.m_datas.append(m_chart.m_data[i].m_high)
+		line2.m_datas.append(m_chart.m_data[i].m_low)
+	
+
 wc = win32gui.WNDCLASS()
 wc.hbrBackground = COLOR_BTNFACE + 1
 wc.hCursor = win32gui.LoadCursor(0,IDI_APPLICATION)
@@ -467,6 +491,7 @@ try:
 		pos = pos - 1
 except requests.exceptions.RequestException as e:
 	print(e)
+#testDiv4()
 calcChartIndicator(m_chart)
 
 rect = win32gui.GetClientRect(hwnd)

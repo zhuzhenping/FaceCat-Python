@@ -640,7 +640,7 @@ def onViewClick(view, mp, buttons, clicks, delta):
 	elif(view.m_name == "Button43"):
 		df = qs.financial_statement('业绩报表',date='20220930')
 		bindDataFrame(df)
-	#业绩报表
+	#业绩预告
 	elif(view.m_name == "Button44"):
 		df = qs.financial_statement('yjyg')
 		bindDataFrame(df)

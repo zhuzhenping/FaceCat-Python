@@ -15,6 +15,7 @@ from requests.adapters import HTTPAdapter
 from facecat import *
 import facecat
 import qstock as qs
+import datetime
 
 #更新悬浮状态
 #views:视图集合
@@ -646,6 +647,8 @@ def bindChartData(df):
 	m_chart.m_lastVisibleIndex = -1
 	for i in range(0, len(df)):
 		data = SecurityData()
+		#dt_time = datetime.datetime.strptime(df.iloc[i]["date"], "%Y-%m-%d %H:%M:%S")
+		#data.m_date = time.mktime(dt_time.timetuple())
 		data.m_date = i
 		data.m_close = float(df.iloc[i]["close"])
 		data.m_high = float(df.iloc[i]["high"])
