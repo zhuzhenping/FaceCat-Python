@@ -354,9 +354,11 @@ def testDiv4():
 	line1.m_title = "A"
 	line2 = BaseShape()
 	line2.m_color = "rgb(0,255,0)"
+	line2.m_color2 = "rgb(255,255,0)"
 	line2.m_divIndex = 3
 	line2.m_name = "line2"
 	line2.m_title = "B"
+	line2.m_title2 = "C"
 	line2.m_type = "bar"
 	m_chart.m_shapes.append(line1)
 	m_chart.m_shapes.append(line2)

@@ -1317,7 +1317,9 @@ def updateTabLayout(tabView):
 def addTabPage(tabView, tabPage, tabButton):
 	tabPage.m_headerButton = tabButton
 	tabPage.m_parent = tabView
+	tabPage.m_paint = tabView.m_paint
 	tabButton.m_parent = tabView
+	tabButton.m_paint = tabView.m_paint
 	tabView.m_tabPages.append(tabPage)
 	tabView.m_views.append(tabPage)
 	tabView.m_views.append(tabButton)
@@ -5285,6 +5287,11 @@ def drawChartCrossLine(chart, paint, clipRect):
 				if(shape.m_divIndex == 1):
 					drawTitles.append(shape.m_title + " " + toFixed(shape.m_datas[crossLineIndex], chart.m_indDigit2))
 					drawColors.append(shape.m_color)
+					if(len(shape.m_datas2) > 0):
+						drawTitles.append(shape.m_title2 + " " + toFixed(shape.m_datas2[crossLineIndex], chart.m_indDigit2))
+						drawColors.append(shape.m_color2)
+						
+					
 		iLeft = chart.m_leftVScaleWidth + 5
 		for i in range(0,len(drawTitles)):
 			tSize = paint.textSize(drawTitles[i], chart.m_font)
@@ -5302,6 +5309,9 @@ def drawChartCrossLine(chart, paint, clipRect):
 				if(shape.m_divIndex == 0):
 					drawTitles.append(shape.m_title + " " + toFixed(shape.m_datas[crossLineIndex], chart.m_indDigit2))
 					drawColors.append(shape.m_color)
+					if(len(shape.m_datas2) > 0):
+						drawTitles.append(shape.m_title2 + " " + toFixed(shape.m_datas2[crossLineIndex], chart.m_indDigit2))
+						drawColors.append(shape.m_color2)
 		for i in range(0,len(drawTitles)):
 			tSize = paint.textSize(drawTitles[i], chart.m_font)
 			paint.drawText(drawTitles[i], drawColors[i], chart.m_font, iLeft, 5)
@@ -5335,6 +5345,9 @@ def drawChartCrossLine(chart, paint, clipRect):
 				if(shape.m_divIndex == 0):
 					drawTitles.append(shape.m_title + " " + toFixed(shape.m_datas[crossLineIndex], chart.m_indDigit2))
 					drawColors.append(shape.m_color)
+					if(len(shape.m_datas2) > 0):
+						drawTitles.append(shape.m_title2 + " " + toFixed(shape.m_datas2[crossLineIndex], chart.m_indDigit2))
+						drawColors.append(shape.m_color2)
 		iLeft = chart.m_leftVScaleWidth + 5
 		for i in range(0, len(drawTitles)):
 			tSize = paint.textSize(drawTitles[i], chart.m_font)
@@ -5403,6 +5416,9 @@ def drawChartCrossLine(chart, paint, clipRect):
 				if(shape.m_divIndex == 2):
 					drawTitles.append(shape.m_title + " " + toFixed(shape.m_datas[crossLineIndex], chart.m_indDigit2))
 					drawColors.append(shape.m_color)
+					if(len(shape.m_datas2) > 0):
+						drawTitles.append(shape.m_title2 + " " + toFixed(shape.m_datas2[crossLineIndex], chart.m_indDigit2))
+						drawColors.append(shape.m_color2)
 		iLeft = chart.m_leftVScaleWidth + 5
 		for i in range(0,len(drawTitles)):
 			tSize = paint.textSize(drawTitles[i], chart.m_font)
@@ -5417,6 +5433,9 @@ def drawChartCrossLine(chart, paint, clipRect):
 				if(shape.m_divIndex == 3):
 					drawTitles.append(shape.m_title + " " + toFixed(shape.m_datas[crossLineIndex], chart.m_indDigit2))
 					drawColors.append(shape.m_color)
+					if(len(shape.m_datas2) > 0):
+						drawTitles.append(shape.m_title2 + " " + toFixed(shape.m_datas2[crossLineIndex], chart.m_indDigit2))
+						drawColors.append(shape.m_color2)
 			if(len(drawTitles) > 0):
 				iLeft = chart.m_leftVScaleWidth + 5
 				for i in range(0,len(drawTitles)):
