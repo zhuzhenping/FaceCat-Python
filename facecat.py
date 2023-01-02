@@ -1855,7 +1855,7 @@ def mouseDownGrid(grid, firstTouch, secondTouch, firstPoint, secondPoint):
 		contentHeight = getGridContentHeight(grid)
 		if (contentHeight > grid.m_size.cy - grid.m_headerHeight - grid.m_scrollSize):
 			sTop = grid.m_headerHeight + grid.m_scrollV / contentHeight * (grid.m_size.cy - grid.m_headerHeight - grid.m_scrollSize)
-			sBottom = (grid.m_scrollV + (grid.m_size.cy - grid.m_headerHeight - grid.m_scrollSize)) / contentHeight * (grid.m_size.cy - grid.m_headerHeight - grid.m_scrollSize)
+			sBottom = grid.m_headerHeight + (grid.m_scrollV + (grid.m_size.cy - grid.m_headerHeight - grid.m_scrollSize)) / contentHeight * (grid.m_size.cy - grid.m_headerHeight - grid.m_scrollSize)
 			if (sBottom - sTop < grid.m_scrollSize):
 				sBottom = sTop + grid.m_scrollSize
 			if (mp.x >= grid.m_size.cx - grid.m_scrollSize and mp.x <= grid.m_size.cx and mp.y >= sTop and mp.y <= sBottom):
@@ -2316,7 +2316,7 @@ def mouseDownTree(tree, firstTouch, secondTouch, firstPoint, secondPoint):
 		contentHeight = getTreeContentHeight(tree)
 		if (contentHeight > tree.m_size.cy):
 			sTop = tree.m_headerHeight + tree.m_scrollV / contentHeight * (tree.m_size.cy - tree.m_headerHeight - tree.m_scrollSize)
-			sBottom = (tree.m_scrollV + (tree.m_size.cy - tree.m_headerHeight - tree.m_scrollSize)) / contentHeight * (tree.m_size.cy - tree.m_headerHeight - tree.m_scrollSize)
+			sBottom = tree.m_headerHeight + (tree.m_scrollV + (tree.m_size.cy - tree.m_headerHeight - tree.m_scrollSize)) / contentHeight * (tree.m_size.cy - tree.m_headerHeight - tree.m_scrollSize)
 			if (sBottom - sTop < tree.m_scrollSize):
 				sBottom = sTop + tree.m_scrollSize
 			if (mp.x >= tree.m_size.cx - tree.m_scrollSize and mp.x <= tree.m_size.cx and mp.y >= sTop and mp.y <= sBottom):
@@ -5285,11 +5285,12 @@ def drawChartCrossLine(chart, paint, clipRect):
 			for i in range(0, len(chart.m_shapes)):
 				shape = chart.m_shapes[i]
 				if(shape.m_divIndex == 1):
-					drawTitles.append(shape.m_title + " " + toFixed(shape.m_datas[crossLineIndex], chart.m_volDigit))
+					drawTitles.append(shape.m_title + " " + toFixed(shape.m_datas[crossLineIndex], chart.m_indDigit2))
 					drawColors.append(shape.m_color)
 					if(len(shape.m_datas2) > 0):
-						drawTitles.append(shape.m_title2 + " " + toFixed(shape.m_datas2[crossLineIndex], chart.m_volDigit))
-						drawColors.append(shape.m_color2)					
+						drawTitles.append(shape.m_title2 + " " + toFixed(shape.m_datas2[crossLineIndex], chart.m_indDigit2))
+						drawColors.append(shape.m_color2)
+						
 					
 		iLeft = chart.m_leftVScaleWidth + 5
 		for i in range(0,len(drawTitles)):
@@ -5306,10 +5307,10 @@ def drawChartCrossLine(chart, paint, clipRect):
 			for i in range(0, len(chart.m_shapes)):
 				shape = chart.m_shapes[i]
 				if(shape.m_divIndex == 0):
-					drawTitles.append(shape.m_title + " " + toFixed(shape.m_datas[crossLineIndex], chart.m_candleDigit))
+					drawTitles.append(shape.m_title + " " + toFixed(shape.m_datas[crossLineIndex], chart.m_indDigit2))
 					drawColors.append(shape.m_color)
 					if(len(shape.m_datas2) > 0):
-						drawTitles.append(shape.m_title2 + " " + toFixed(shape.m_datas2[crossLineIndex], chart.m_candleDigit))
+						drawTitles.append(shape.m_title2 + " " + toFixed(shape.m_datas2[crossLineIndex], chart.m_indDigit2))
 						drawColors.append(shape.m_color2)
 		for i in range(0,len(drawTitles)):
 			tSize = paint.textSize(drawTitles[i], chart.m_font)
@@ -5342,10 +5343,10 @@ def drawChartCrossLine(chart, paint, clipRect):
 			for i in range(0, len(chart.m_shapes)):
 				shape = chart.m_shapes[i]
 				if(shape.m_divIndex == 0):
-					drawTitles.append(shape.m_title + " " + toFixed(shape.m_datas[crossLineIndex], chart.m_candleDigit))
+					drawTitles.append(shape.m_title + " " + toFixed(shape.m_datas[crossLineIndex], chart.m_indDigit2))
 					drawColors.append(shape.m_color)
 					if(len(shape.m_datas2) > 0):
-						drawTitles.append(shape.m_title2 + " " + toFixed(shape.m_datas2[crossLineIndex], chart.m_candleDigit))
+						drawTitles.append(shape.m_title2 + " " + toFixed(shape.m_datas2[crossLineIndex], chart.m_indDigit2))
 						drawColors.append(shape.m_color2)
 		iLeft = chart.m_leftVScaleWidth + 5
 		for i in range(0, len(drawTitles)):
@@ -5413,10 +5414,10 @@ def drawChartCrossLine(chart, paint, clipRect):
 			for i in range(0, len(chart.m_shapes)):
 				shape = chart.m_shapes[i]
 				if(shape.m_divIndex == 2):
-					drawTitles.append(shape.m_title + " " + toFixed(shape.m_datas[crossLineIndex], chart.m_indDigit))
+					drawTitles.append(shape.m_title + " " + toFixed(shape.m_datas[crossLineIndex], chart.m_indDigit2))
 					drawColors.append(shape.m_color)
 					if(len(shape.m_datas2) > 0):
-						drawTitles.append(shape.m_title2 + " " + toFixed(shape.m_datas2[crossLineIndex], chart.m_indDigit))
+						drawTitles.append(shape.m_title2 + " " + toFixed(shape.m_datas2[crossLineIndex], chart.m_indDigit2))
 						drawColors.append(shape.m_color2)
 		iLeft = chart.m_leftVScaleWidth + 5
 		for i in range(0,len(drawTitles)):

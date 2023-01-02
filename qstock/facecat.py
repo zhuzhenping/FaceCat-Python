@@ -1855,7 +1855,7 @@ def mouseDownGrid(grid, firstTouch, secondTouch, firstPoint, secondPoint):
 		contentHeight = getGridContentHeight(grid)
 		if (contentHeight > grid.m_size.cy - grid.m_headerHeight - grid.m_scrollSize):
 			sTop = grid.m_headerHeight + grid.m_scrollV / contentHeight * (grid.m_size.cy - grid.m_headerHeight - grid.m_scrollSize)
-			sBottom = (grid.m_scrollV + (grid.m_size.cy - grid.m_headerHeight - grid.m_scrollSize)) / contentHeight * (grid.m_size.cy - grid.m_headerHeight - grid.m_scrollSize)
+			sBottom = grid.m_headerHeight + (grid.m_scrollV + (grid.m_size.cy - grid.m_headerHeight - grid.m_scrollSize)) / contentHeight * (grid.m_size.cy - grid.m_headerHeight - grid.m_scrollSize)
 			if (sBottom - sTop < grid.m_scrollSize):
 				sBottom = sTop + grid.m_scrollSize
 			if (mp.x >= grid.m_size.cx - grid.m_scrollSize and mp.x <= grid.m_size.cx and mp.y >= sTop and mp.y <= sBottom):
@@ -2316,7 +2316,7 @@ def mouseDownTree(tree, firstTouch, secondTouch, firstPoint, secondPoint):
 		contentHeight = getTreeContentHeight(tree)
 		if (contentHeight > tree.m_size.cy):
 			sTop = tree.m_headerHeight + tree.m_scrollV / contentHeight * (tree.m_size.cy - tree.m_headerHeight - tree.m_scrollSize)
-			sBottom = (tree.m_scrollV + (tree.m_size.cy - tree.m_headerHeight - tree.m_scrollSize)) / contentHeight * (tree.m_size.cy - tree.m_headerHeight - tree.m_scrollSize)
+			sBottom = tree.m_headerHeight + (tree.m_scrollV + (tree.m_size.cy - tree.m_headerHeight - tree.m_scrollSize)) / contentHeight * (tree.m_size.cy - tree.m_headerHeight - tree.m_scrollSize)
 			if (sBottom - sTop < tree.m_scrollSize):
 				sBottom = sTop + tree.m_scrollSize
 			if (mp.x >= tree.m_size.cx - tree.m_scrollSize and mp.x <= tree.m_size.cx and mp.y >= sTop and mp.y <= sBottom):
