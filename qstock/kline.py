@@ -215,6 +215,7 @@ def readXmlNode(paint, node, parent):
 					view.m_size = FCSize(int(atrDatum.split(',')[0]), int(atrDatum.split(',')[1]))
 				splitter = FCView()
 				splitter.m_paint = paint
+				splitter.m_parent = view
 				if(view.m_paint.m_defaultUIStyle == "dark"):
 					splitter.m_backColor = "rgb(100,100,100)"
 				elif(view.m_paint.m_defaultUIStyle == "light"):
