@@ -360,12 +360,17 @@ def testDiv4():
 	line2.m_title = "B"
 	line2.m_title2 = "C"
 	line2.m_type = "bar"
+	line2.m_style = "2color"
 	m_chart.m_shapes.append(line1)
 	m_chart.m_shapes.append(line2)
 	for i in range(0, len(m_chart.m_data)):
 		line1.m_datas.append(m_chart.m_data[i].m_close)
-		line2.m_datas.append(m_chart.m_data[i].m_low)
-		line2.m_datas2.append(m_chart.m_data[i].m_high)
+		if(i % 2 == 0):
+			line2.m_datas.append(m_chart.m_data[i].m_low)
+		else:
+			line2.m_datas.append(-m_chart.m_data[i].m_low)
+		line2.m_datas2.append(0)
+		#line2.m_datas2.append(m_chart.m_data[i].m_high)
 	
 
 wc = win32gui.WNDCLASS()
