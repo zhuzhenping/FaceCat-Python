@@ -132,10 +132,8 @@ class FCPaint(object):
 				if (self.m_scaleFactorX != 1 or self.m_scaleFactorY != 1):
 					x = m_scaleFactorX * x;
 					y = m_scaleFactorY * y;
-				if(i == 0):
-					win32gui.MoveToEx(self.m_innerHDC, int(x), int(y))
-				else:
-					win32gui.LineTo(self.m_innerHDC, int(x), int(y))
+				apt[i] = (int(x), int(y))
+			win32gui.Polyline(self.m_innerHDC, apt)
 			win32gui.SelectObject(self.m_innerHDC, hOldPen)
 			win32gui.DeleteObject(hPen)
 	#绘制多边形
